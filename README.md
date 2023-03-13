@@ -2,7 +2,7 @@
     cushy-storage
 </h1>
 <p align="center">
-  <strong>cushy-storage是一个基于磁盘缓存的Python框架</strong>
+  <strong>一个基于磁盘缓存的Python框架</strong>
 </p>
 
 <p align="center">
@@ -57,6 +57,19 @@ value = cache['key']
 
 ```
 
+- 判断key是否存在
+
+```python
+from cushy_storage import CushyDict
+
+cache = CushyDict('./cache')
+if 'key' in cache:
+    print("key exist")
+else:
+    print("key not exist")
+
+```
+
 ## disk_cache装饰器函数
 
 disk_cache装饰器函数可以将函数的输出结果缓存到磁盘中，以便下次使用时直接读取。通过该装饰器，可以在不改变原有代码逻辑的情况下，大幅度提高程序的执行效率。
@@ -75,6 +88,7 @@ result = my_func()
  
 # 待办
 
+- [ ] 提供单例模式解决方案，提供更加方便的磁盘缓存方案
 - [ ] 支持更多的压缩和序列化算法，以满足不同类型数据的需求
 - [ ] 提供更加友好的错误处理机制，让用户更容易发现和解决问题
 - [ ] 改进缓存管理策略，确保缓存数据的可靠性和一致性
