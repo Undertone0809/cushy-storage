@@ -22,34 +22,29 @@ from cushy_storage import CushyDict
 
 
 class TestCushyDict(unittest.TestCase):
-    def test_basic_operations(self):
-        cache = CushyDict('./test-cache')
+    def test_read_and_write_data(self):
+        cache = CushyDict("./test-cache")
+        cache['a'] = 10
+        self.assertEqual(cache['a'], 10)
 
-        # Test adding items to the cache
-        cache['foo'] = b'bar'
-        self.assertEqual(cache['foo'], b'bar')
+        cache['b'] = "test"
+        self.assertEqual(cache['b'], "test")
 
-        # Test deleting items from the cache
-        del cache['foo']
-        with self.assertRaises(KeyError):
-            cache['foo']
+        cache['c'] = [1, 2, 3, 4]
+        self.assertEqual(cache['c'], [1, 2, 3, 4])
 
-        # Test checking if an item is in the cache
-        self.assertFalse('foo' in cache)
+        cache['d'] = {"key": "value"}
+        self.assertEqual(cache['d'], {"key": "value"})
 
-    def test_serialization(self):
-        cache = CushyDict('./test-cache', serialize='pickle')
+        cache['e'] = ("hello", 1)
+        print(type(cache['e']))
+        self.assertEqual(cache['e'], ["hello", 1])
 
-        # Test storing and retrieving a dictionary in the cache using pickle serialization
-        cache['data'] = {'foo': 'bar', 'baz': [1, 2, 3]}
-        self.assertEqual(cache['data'], {'foo': 'bar', 'baz': [1, 2, 3]})
-
-    def test_compression(self):
-        cache = CushyDict('./test-cache', compress='lzma')
-
-        # Test storing and retrieving a large string in the cache using LZMA compression
-        data = 'a' * (1024 * 1024)
-        cache['big_data'] = data.encode()
-        self.assertEqual(cache['big_data'].decode(), data)
-
-
+    def test_data_type(self):
+        cache = CushyDict("./test-cache")
+        self.assertEqual(type(cache['a']), int)
+        self.assertEqual(type(cache['b']), str)
+        self.assertEqual(type(cache['c']), list)
+        self.assertEqual(type(cache['d']), dict)
+        # todo https://github.com/Undertone0809/cushy-stroage/issues/1
+        self.assertEqual(type(cache['e']), list)

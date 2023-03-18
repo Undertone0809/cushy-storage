@@ -1,4 +1,4 @@
-tests/test_CSTCP_client.py
+tests/test-cache
 command
 
 # Byte-compiled / optimized / DLL files
