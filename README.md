@@ -38,6 +38,9 @@ pip install cushy-storage --upgrade
 
 # 使用方法
 
+`cushy-storage` 的使用主要分为三个类，`BaseDict` `CushyDict` `disk_cache`，其中`CushyDict`是`BaseDict`的增强版，可以实现
+`BaseDict`的所有功能，还增加了相应序列化操作，因此推荐直接使用`CushyDict`来操作保存数据。
+
 ## BaseDict类
 
 BaseDict类是CushyDict类的基础实现，提供了基本的字典结构和缓存操作。它可以用于缓存任何类型的Python对象，但不支持序列化和反序列化操作。
