@@ -59,7 +59,9 @@ _F = Union[str, Tuple[Callable, Callable], None]
 
 
 def _cf(s: _F, d: dict) -> Tuple[Callable, Callable]:
-    # Helper function to get the compression or serialization functions based on input parameter
+    """
+    Helper function to get the compression or serialization functions based on input parameter
+    """
     if s is None:
         return lambda x: x, lambda x: x
     elif isinstance(s, str):
@@ -78,11 +80,15 @@ class BaseDict(MutableMapping[str, bytes]):
         self.compress, self.decompress = _cf(compress, _COMPRESS)
 
     def __contains__(self, k: str):
-        # Check if the file exists in the cache
+        """
+        Check if the file exists in the cache
+        """
         return (self.path / k[:2] / (k[2:] + '_')).is_file()
 
     def __getitem__(self, k: str):
-        # Retrieve the cached item using its key and decompress it
+        """
+        Retrieve the cached item using its key and decompress it
+        """
         if k not in self:
             raise KeyError(k)
         rk = hashlib.md5(k.encode('utf8')).hexdigest()[:2]
@@ -92,7 +98,9 @@ class BaseDict(MutableMapping[str, bytes]):
         return self.decompress(t)
 
     def __setitem__(self, k: str, v: bytes):
-        # Compress the value and store it in the cache using its key
+        """
+        Compress the value and store it in the cache using its key
+        """
         if k[:2] not in self.dirs:
             (self.path / k[:2]).mkdir(exist_ok=True)
             self.dirs.add(k[:2])
@@ -103,23 +111,38 @@ class BaseDict(MutableMapping[str, bytes]):
                 f.write(t)
 
     def __delitem__(self, k: str):
-        # Remove the cached item using its key
+        """
+        Remove the cached item using its key
+        """
         os.remove(self.path / k[:2] / (k[2:] + '_'))
 
     def __len__(self):
-        # Get the total number of items in the cache
+        """
+        Get the total number of items in the cache
+        """
         return sum([len(os.listdir(self.path / a)) for a in os.listdir(self.path)])
 
     def __iter__(self):
-        # Iterate over all keys in the cache
+        """
+        Iterate over all keys in the cache
+        """
         for a in os.listdir(self.path):
             for b in os.listdir(self.path / a):
                 yield a + b[:-1]
 
 
-# A subclass of BaseDict that can serialize and deserialize values using different algorithms
 class CushyDict(BaseDict):
+    """
+    A subclass of BaseDict that can serialize and deserialize values using different algorithms
+    """
+
     def __init__(self, path: str, compress: _F = None, serialize: _F = 'json'):
+        """
+
+        :param path: the path to save
+        :param compress: zlib or lzma
+        :param serialize: json or pickle
+        """
         super().__init__(path, compress)
         self.serialize, self.deserialize = _cf(serialize, _SERIALIZATION)
 
@@ -136,8 +159,10 @@ _EXT = {
 }
 
 
-def disk_cache(path=None, compress=None, serialize='json'):
-    # Decorator that caches the output of a function to disk
+def disk_cache(path: str = None, compress: str = None, serialize: str = 'json'):
+    """
+    Decorator that caches the output of a function to disk
+    """
     ext = _EXT.get(serialize, '_')
     dump = _cf(serialize, _SERIALIZATION)[0]
 

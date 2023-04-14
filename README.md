@@ -36,7 +36,7 @@ cushy-storage是一个基于磁盘缓存的Python库，可以将Python对象序�
 pip install cushy-storage --upgrade 
 ```
 
-# 使用方法
+# 快速上手
 
 `cushy-storage` 的使用主要分为三个类，`BaseDict` `CushyDict` `disk_cache`，其中`CushyDict`是`BaseDict`的增强版，可以实现
 `BaseDict`的所有功能，还增加了相应序列化操作，因此推荐直接使用`CushyDict`来操作保存数据。
@@ -48,22 +48,26 @@ BaseDict类是CushyDict类的基础实现，提供了基本的字典结构和缓
 ```python
 from cushy_storage import BaseDict
 
-cache = BaseDict('./cache')
+# 初始化cache，保存在./data文件夹下
+cache = BaseDict('./data')
 cache['key'] = b'value'
 value = cache['key']
+print(value)
 
 ```
 
 ## CushyDict类
 
-CushyDict类是CushyStorage库的高级实现，增加了对值进行序列化和反序列化的功能。它支持多种序列化算法（包括pickle和json）和压缩算法（包括zlib和lzma），可以根据需要选择不同的算法进行数据压缩和序列化。
+CushyDict类是BaseDict库的高级实现，增加了对值进行序列化和反序列化的功能。它支持多种序列化算法（包括pickle和json）和压缩算法（包括zlib和lzma），可以根据需要选择不同的算法进行数据压缩和序列化。
 
 ```python
 from cushy_storage import CushyDict
 
-cache = CushyDict('./cache')
+# 初始化cache，保存在./data文件夹下
+cache = CushyDict('./data')
 cache['key'] = {'value': 42}
 value = cache['key']
+print(value)
 
 ```
 
@@ -72,7 +76,7 @@ value = cache['key']
 ```python
 from cushy_storage import CushyDict
 
-cache = CushyDict('./cache')
+cache = CushyDict('./data')
 if 'key' in cache:
     print("key exist")
 else:
@@ -87,7 +91,7 @@ disk_cache装饰器函数可以将函数的输出结果缓存到磁盘中，以�
 ```python
 from cushy_storage import disk_cache
 
-@disk_cache('./cache')
+@disk_cache('./data')
 def my_func():
     return {'value': 42}
 
