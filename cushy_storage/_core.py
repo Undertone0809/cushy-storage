@@ -136,12 +136,12 @@ class CushyDict(BaseDict):
     A subclass of BaseDict that can serialize and deserialize values using different algorithms
     """
 
-    def __init__(self, path: str, compress: _F = None, serialize: _F = 'json'):
+    def __init__(self, path: str = './data', compress: _F = None, serialize: _F = 'json'):
         """
-
-        :param path: the path to save
-        :param compress: zlib or lzma
-        :param serialize: json or pickle
+        Args:
+            path: the path to save
+            compress: zlib or lzma
+            serialize: json or pickle
         """
         super().__init__(path, compress)
         self.serialize, self.deserialize = _cf(serialize, _SERIALIZATION)
