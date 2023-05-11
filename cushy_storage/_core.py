@@ -27,6 +27,8 @@ import threading
 from pathlib import Path
 from typing import MutableMapping, Callable, Tuple, Union, Any
 
+from cushy_storage.utils import get_default_storage_path
+
 __all__ = ['BaseDict', 'CushyDict', 'disk_cache']
 
 # Compression algorithms and their corresponding functions
@@ -55,10 +57,9 @@ _SERIALIZATION = {
 
 # Locks for each hash value (hexadecimal representation of 0-255)
 _LOCKS = {hex(i)[2:].zfill(2): threading.Lock() for i in range(256)}
-_F = Union[str, Tuple[Callable, Callable], None]
 
 
-def _cf(s: _F, d: dict) -> Tuple[Callable, Callable]:
+def _cf(s: Union[str, Tuple[Callable, Callable], None], d: dict) -> Tuple[Callable, Callable]:
     """
     Helper function to get the compression or serialization functions based on input parameter
     """
@@ -71,7 +72,7 @@ def _cf(s: _F, d: dict) -> Tuple[Callable, Callable]:
 
 
 class BaseDict(MutableMapping[str, bytes]):
-    def __init__(self, path: str, compress: _F = None):
+    def __init__(self, path: str, compress: Union[str, Tuple[Callable, Callable], None] = None):
         self.path = Path(path)
         if self.path.is_file():
             raise Exception('path has exist')  # Raise an exception if the path already exists as a file
@@ -82,6 +83,18 @@ class BaseDict(MutableMapping[str, bytes]):
     def __contains__(self, k: str):
         """
         Check if the file exists in the cache
+
+        Args:
+            k: key
+
+        Examples:
+            from cushy_storage import CushyDict
+
+            cache = CushyDict()
+            if 'my_key' in cache:
+                print("[my_key] in my cache")
+            else:
+                print("[my_key] not in my cache")
         """
         return (self.path / k[:2] / (k[2:] + '_')).is_file()
 
@@ -136,7 +149,12 @@ class CushyDict(BaseDict):
     A subclass of BaseDict that can serialize and deserialize values using different algorithms
     """
 
-    def __init__(self, path: str = './data', compress: _F = None, serialize: _F = 'json'):
+    def __init__(
+            self,
+            path: str = get_default_storage_path(),
+            compress: Union[str, Tuple[Callable, Callable], None] = None,
+            serialize: Union[str, Tuple[Callable, Callable], None] = 'json'
+    ):
         """
         Args:
             path: the path to save

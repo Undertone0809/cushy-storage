@@ -2,6 +2,7 @@ output_gpt.md
 tests/test-cache
 command
 /example/data
+/example/cache
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
