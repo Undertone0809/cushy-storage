@@ -20,7 +20,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setuptools.setup(
     name="cushy-storage",
-    version="1.0.3",
+    version="1.0.4",
     author="Zeeland",
     author_email="zeeland@foxmail.com",
     description="A data local persistence framework library",
