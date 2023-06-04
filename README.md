@@ -20,16 +20,17 @@
 [English](/README_en.md) [中文](/README.md)
 
 # 简介
+
 cushy-storage是一个基于磁盘缓存的Python库，可以将Python对象序列化后缓存到磁盘中，以便下次使用时直接读取，从而提高程序的执行效率。另一方面，
 cushy-storage让你无需花费精力在如何制订一套数据存储规范上，字典般的操作可以减少很多开发的成本。
 
 # 特性
-- 可以方便的将数据进行本地磁盘存储
+
+- 可以方便地将数据(基本数据类型、自定义数据类型)进行本地磁盘存储
 - 免去了直接操作文件的工作
 - 像操作dict一样读写，十分方便
 - 提供序列化操作
 - 提供多种数据压缩方式
-
 
 # 安装
 
@@ -44,7 +45,7 @@ pip install cushy-storage --upgrade
 
 ## BaseDict类
 
-BaseDict类是CushyDict类的基础实现，提供了基本的字典结构和缓存操作。它可以用于缓存任何类型的Python对象，但不支持序列化和反序列化操作。
+BaseDict类是CushyDict类的基础实现，其只支持简单的二进制数据存储。
 
 ```python
 from cushy_storage import BaseDict
@@ -60,7 +61,11 @@ print(value)
 
 ## CushyDict类
 
-CushyDict类是BaseDict库的高级实现，增加了对值进行序列化和反序列化的功能。它支持多种序列化算法（包括pickle和json）和压缩算法（包括zlib和lzma），可以根据需要选择不同的算法进行数据压缩和序列化，下面是一些简单的使用教程。
+CushyDict类是BaseDict库的高级实现，你可以像操作字典一样操作CushyDict；其增加了对值进行序列化和反序列化的功能，可以存储任意类型的数据。
+此外，CushyDict支持多种序列化算法 （pickle和json）和压缩算法（zlib和lzma），可以根据需要选择不同的算法进行数据压缩和序列化，下面是
+一些简单的使用教程。
+
+- 存储Python基本数据类型
 
 ```python
 from cushy_storage import CushyDict
@@ -77,10 +82,12 @@ print(cache['a'])
 cache['b'] = "hello world"
 print(cache['b'])
 
-cache['arr'] = [1,2,3,4,5]
+cache['arr'] = [1, 2, 3, 4, 5]
 print(cache['arr'])
 
 ```
+
+> 以`cache['arr'] = [1, 2, 3, 4, 5]`为例，在指令这段代码之后，CushyDict会将数据存储到指令文件夹下。
 
 - 生成结果
 
@@ -94,29 +101,7 @@ print(cache['arr'])
 
 <img src="https://zeeland-bucket.oss-cn-beijing.aliyuncs.com/images/20230416210757.png"/>
 
-- 如果在初始化的时候不传入参数，则默认保存在`./data`文件夹下
-
-```python
-from cushy_storage import CushyDict
-
-cache = CushyDict()
-```
-
-
-- 判断key是否存在（和字典操作同理）
-
-```python
-from cushy_storage import CushyDict
-
-cache = CushyDict('./data')
-if 'key' in cache:
-    print("key exist")
-else:
-    print("key not exist")
-
-```
-
-- 用`CushyDict`存储对象信息
+- 存储自定义数据类型
 
 ```python
 from cushy_storage import CushyDict
@@ -129,36 +114,60 @@ class User:
 
 
 def main():
-    cache = CushyDict('./data', serialize='pickle')
+    cache = CushyDict(serialize='pickle')
     user = User("Jack", 18)
     cache['user'] = user
 
+    user = cache['user']
+    print(type(user))
     print(cache['user'].name)
     print(cache['user'].age)
 
 
 if __name__ == '__main__':
     main()
+```
+
+> 需要说明的是，如果你有定义复杂数据的需求，如List里面存json；或者你没有去文件下看原数据的需求，则推荐使用pickle的方式来进行数据存储。
+
+- 如果在初始化的时候不传入参数，则默认保存在`./cache`文件夹下
+
+```python
+from cushy_storage import CushyDict
+
+cache = CushyDict()
+```
+
+- 判断key是否存在（和字典操作同理）
+
+```python
+from cushy_storage import CushyDict
+
+cache = CushyDict()
+if 'key' in cache:
+    print("key exist")
+else:
+    print("key not exist")
 
 ```
 
+## disk_cache装饰器
 
-## disk_cache装饰器函数
-
-disk_cache装饰器函数可以将函数的输出结果缓存到磁盘中，以便下次使用时直接读取。通过该装饰器，可以在不改变原有代码逻辑的情况下，大幅度提高程序的执行效率。
+disk_cache装饰器可以将函数的输出结果缓存到磁盘中，以便下次使用时直接读取。通过该装饰器，可以在不改变原有代码逻辑的情况下，大幅度提高程序的执行效率。
 
 ```python
 from cushy_storage import disk_cache
+
 
 @disk_cache('./data')
 def my_func():
     return {'value': 42}
 
+
 result = my_func()
 
 ```
- 
- 
+
 # 待办
 
 - [ ] 提供单例模式解决方案，提供更加方便的工具类
@@ -175,9 +184,13 @@ result = my_func()
 - [ ] 提供ORM框架，封装对象级的CRUD操作
 
 # 鸣谢
-本项目基于[https://github.com/RimoChan/rimo_storage](https://github.com/RimoChan/rimo_storage) 进行二次开发改进，感谢[RimoChan](https://github.com/RimoChan) 大佬。
 
-This project is based on https://github.com/RimoChan/rimo_storage for secondary development and improvement. Thanks to RimoChan for his great work.
+本项目基于[https://github.com/RimoChan/rimo_storage](https://github.com/RimoChan/rimo_storage)
+进行二次开发改进，感谢[RimoChan](https://github.com/RimoChan) 大佬。
+
+This project is based on https://github.com/RimoChan/rimo_storage for secondary development and improvement. Thanks to
+RimoChan for his great work.
 
 # 贡献
+
 如果你想为这个项目做贡献，你可以提交pr或issue。我很高兴看到更多的人参与并优化它。
