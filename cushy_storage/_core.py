@@ -25,8 +25,9 @@ import pickle
 import hashlib
 import threading
 from pathlib import Path
-from typing import MutableMapping, Callable, Tuple, Union, Any
+from typing import MutableMapping, Callable, Tuple, Union, Any, List
 
+from cushy_storage.base import _List, BASE_TYPE
 from cushy_storage.utils import get_default_storage_path
 
 __all__ = ['BaseDict', 'CushyDict', 'disk_cache']
@@ -59,7 +60,7 @@ _SERIALIZATION = {
 _LOCKS = {hex(i)[2:].zfill(2): threading.Lock() for i in range(256)}
 
 
-def _cf(s: Union[str, Tuple[Callable, Callable], None], d: dict) -> Tuple[Callable, Callable]:
+def _method_convert_helper(s: Union[str, Tuple[Callable, Callable], None], d: dict) -> Tuple[Callable, Callable]:
     """
     Helper function to get the compression or serialization functions based on input parameter
     """
@@ -78,7 +79,7 @@ class BaseDict(MutableMapping[str, bytes]):
             raise Exception('path has exist')  # Raise an exception if the path already exists as a file
         self.path.mkdir(parents=True, exist_ok=True)
         self.dirs = set()
-        self.compress, self.decompress = _cf(compress, _COMPRESS)
+        self.compress, self.decompress = _method_convert_helper(compress, _COMPRESS)
 
     def __contains__(self, k: str):
         """
@@ -162,27 +163,31 @@ class CushyDict(BaseDict):
             serialize: json or pickle
         """
         super().__init__(path, compress)
-        self.serialize, self.deserialize = _cf(serialize, _SERIALIZATION)
+        self.serialize, self.deserialize = _method_convert_helper(serialize, _SERIALIZATION)
 
     def __getitem__(self, k: str):
-        return self.deserialize(super().__getitem__(k))
+        ret = self.deserialize(super().__getitem__(k))
+
+        if isinstance(ret, list):
+            ret: List = _List(ret)
+        return ret
 
     def __setitem__(self, k: str, v: Any):
+        if isinstance(v, list) and self.deserialize is json.loads and len(v) > 0 and type(v[0]) not in BASE_TYPE:
+            raise ValueError((
+                f"Can not use 'json' to serialize your '{type(v[0])}' data in '{k}'. If you want to store "
+                "complex data or custom data, please use 'pickle' to serialize."
+            ))
         return super().__setitem__(k, self.serialize(v))
-
-
-_EXT = {
-    'pickle': 'pkl',
-    'json': 'json',
-}
 
 
 def disk_cache(path: str = None, compress: str = None, serialize: str = 'json'):
     """
     Decorator that caches the output of a function to disk
     """
-    ext = _EXT.get(serialize, '_')
-    dump = _cf(serialize, _SERIALIZATION)[0]
+    if serialize not in ['pickle', 'json']:
+        ValueError("Your serializer must be 'pickle' or 'json'")
+    dump = _method_convert_helper(serialize, _SERIALIZATION)[0]
 
     def decorator(func):
         nonlocal path
@@ -196,6 +201,7 @@ def disk_cache(path: str = None, compress: str = None, serialize: str = 'json'):
             # Serialize the function arguments and use their MD5 hash as the cache key
             input_data = [name, args, kwargs]
             md5 = hashlib.md5(dump(input_data)).hexdigest()
+            ext = 'pkl' if serialize == 'pickle' else 'json'
             filename = f'{md5}.{ext}'
 
             if filename in map:

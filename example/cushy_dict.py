@@ -17,10 +17,17 @@
 # Project Link: https://github.com/Undertone0809/cushy-storage
 # Contact Email: zeeland@foxmail.com
 
-
 from cushy_storage import CushyDict
 
 cache = CushyDict('./cache')
 cache['key'] = {'value': 42}
-value = cache['key']
-print(value)
+print(cache['key'])
+
+cache['a'] = 1
+print(cache['a'])
+
+cache['b'] = "hello world"
+print(cache['b'])
+
+cache['arr'] = [1, 2, 3, 4, 5]
+print(cache['arr'])
