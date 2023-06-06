@@ -18,12 +18,12 @@
 # Contact Email: zeeland@foxmail.com
 
 import unittest
-from cushy_storage import CushyDict
+from cushy_storage import BaseDict
 
 
 class TestBaseDict(unittest.TestCase):
     def test_basic_operations(self):
-        cache = CushyDict('./test-cache')
+        cache = BaseDict('./cache/test-base-dict')
 
         # Test adding items to the cache
         cache['foo'] = b'bar'
@@ -37,19 +37,10 @@ class TestBaseDict(unittest.TestCase):
         # Test checking if an item is in the cache
         self.assertFalse('foo' in cache)
 
-    def test_serialization(self):
-        cache = CushyDict('./test-cache', serialize='pickle')
-
-        # Test storing and retrieving a dictionary in the cache using pickle serialization
-        cache['data'] = {'foo': 'bar', 'baz': [1, 2, 3]}
-        self.assertEqual(cache['data'], {'foo': 'bar', 'baz': [1, 2, 3]})
-
     def test_compression(self):
-        cache = CushyDict('./test-cache', compress='lzma')
+        cache = BaseDict('./cache/test-base-dict', compress='lzma')
 
         # Test storing and retrieving a large string in the cache using LZMA compression
         data = 'a' * (1024 * 1024)
         cache['big_data'] = data.encode()
         self.assertEqual(cache['big_data'].decode(), data)
-
-

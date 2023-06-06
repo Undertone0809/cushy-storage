@@ -24,7 +24,7 @@ from cushy_storage import CushyDict, disk_cache
 
 class TestDiskCache(unittest.TestCase):
     def test_basic_usage(self):
-        @disk_cache('./test-disk-cache')
+        @disk_cache('./cache/test-disk-cache')
         def slow_function(x):
             time.sleep(0.1)
             return x + 1
@@ -35,7 +35,7 @@ class TestDiskCache(unittest.TestCase):
         self.assertEqual(slow_function(10), 11)
 
     def test_serialization(self):
-        @disk_cache('./test-disk-cache-serialize', serialize='pickle')
+        @disk_cache('./cache/test-disk-cache-serialize', serialize='pickle')
         def slow_function(x):
             time.sleep(0.1)
             return {'result': x}
@@ -46,7 +46,7 @@ class TestDiskCache(unittest.TestCase):
         self.assertEqual(slow_function(10), {'result': 10})
 
     def test_compression(self):
-        @disk_cache('./test-disk-cache-compress', compress='lzma')
+        @disk_cache('./cache/test-disk-cache-compress', compress='lzma')
         def slow_function(x):
             time.sleep(0.1)
             return 'a' * (1024 * 1024)

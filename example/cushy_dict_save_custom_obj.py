@@ -18,13 +18,25 @@
 # Contact Email: zeeland@foxmail.com
 
 
-from cushy_storage._core import disk_cache, CushyDict, BaseDict
-from cushy_storage.orm import BaseORMModel, CushyOrmCache
+from cushy_storage import CushyDict
 
-__all__ = [
-    'disk_cache',
-    'CushyDict',
-    'BaseDict',
-    'BaseORMModel',
-    'CushyOrmCache'
-]
+
+class User:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+
+def main():
+    cache = CushyDict(serialize='pickle')
+    user = User("Jack", 18)
+    cache['user'] = user
+
+    user = cache['user']
+    print(type(user))
+    print(cache['user'].name)
+    print(cache['user'].age)
+
+
+if __name__ == '__main__':
+    main()

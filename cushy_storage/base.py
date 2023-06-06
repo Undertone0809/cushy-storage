@@ -17,14 +17,32 @@
 # Project Link: https://github.com/Undertone0809/cushy-storage
 # Contact Email: zeeland@foxmail.com
 
+from typing import List
 
-from cushy_storage._core import disk_cache, CushyDict, BaseDict
-from cushy_storage.orm import BaseORMModel, CushyOrmCache
-
-__all__ = [
-    'disk_cache',
-    'CushyDict',
-    'BaseDict',
-    'BaseORMModel',
-    'CushyOrmCache'
+BASE_TYPE = [
+    int, str, float, dict, list, tuple, bytes
 ]
+
+
+class EnhancedList(list):
+    """Custom List to provide more functions"""
+
+    def append(self, __object) -> List:
+        super().append(__object)
+        return self
+
+    def remove(self, __value) -> List:
+        super().remove(__value)
+        return self
+
+    def insert(self, __index, __object) -> List:
+        super().insert(__index, __object)
+        return self
+
+    def pop(self, __index=...) -> List:
+        super().pop(__index)
+        return self
+
+    def reverse(self) -> List:
+        super().reverse()
+        return self

@@ -35,12 +35,20 @@ def get_project_root_path() -> str:
     return project_path
 
 
-def get_default_storage_path() -> str:
+def get_default_storage_path(file_name) -> str:
     if platform.system() == 'Windows':
-        return f"./cache"
+        return f"./{file_name}"
     elif platform.system() == 'Linux':
         dir_path = os.environ.get('TMPDIR')
         if not dir_path:
             dir_path = tempfile.gettempdir()
         dir_path = os.path.join(dir_path, "prompt_me")
-        return f"{dir_path}/cache"
+        return f"{dir_path}/{file_name}"
+
+
+def get_default_cache_path() -> str:
+    return get_default_storage_path("cache")
+
+
+def get_default_log_path() -> str:
+    return get_default_storage_path("log")
