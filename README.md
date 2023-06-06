@@ -77,27 +77,35 @@ orm_cache = CushyOrmCache()
 接着，你就可以直接进行`User`的增删改查操作了。
 
 ```python
-# add user
+"""add user"""
 user = User("jack", 18)
 orm_cache.add(user)
+user = User("jasmine", 18)
+orm_cache.add(user)
+
+"""query all user"""
 users = orm_cache.query(User).all()
-for user in users:
-    print(user.__dict__)
+orm_cache.query(User).print_all()
 
-# query
-orm_cache.query(User).all()
-
-# query by filter
-orm_cache.query("User").filter(name="jack").all()
+"""query by filter"""
+# get all user, you will get a List[User] type data.
+# Actually, it will get two users named "jack" and "jasmine".
+orm_cache.query("User").filter(age=18).all()
+# get first in queryset, you will get a User type data
 orm_cache.query("User").filter(name="jack").first()
+# filter by multiple parameters
+orm_cache.query("User").filter(name="jack", age=18).first()
 
-# update
+"""update"""
 user = orm_cache.query("User").filter(name='jack').first()
 user.age = 18
-orm_cache.update(user)
+orm_cache.update_obj(user)
 
-# delete
-orm_cache.query("User").filter(name="jack").first().delete()
+"""delete"""
+user = orm_cache.query("User").filter(name="jack").first()
+orm_cache.delete(user)
+orm_cache.query(User).print_all()
+
 ```
 
 完整代码如下：
@@ -116,12 +124,11 @@ class User(BaseORMModel):
 
 orm_cache = CushyOrmCache()
 
-# add user
+"""add user"""
 user = User("jack", 18)
 orm_cache.add(user)
 user = User("jasmine", 18)
 orm_cache.add(user)
-
 
 """query all user"""
 users = orm_cache.query(User).all()

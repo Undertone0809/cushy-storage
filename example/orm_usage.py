@@ -30,12 +30,11 @@ class User(BaseORMModel):
 
 orm_cache = CushyOrmCache()
 
-# add user
+"""add user"""
 user = User("jack", 18)
 orm_cache.add(user)
 user = User("jasmine", 18)
 orm_cache.add(user)
-
 
 """query all user"""
 users = orm_cache.query(User).all()
