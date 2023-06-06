@@ -17,14 +17,14 @@
 # Project Link: https://github.com/Undertone0809/cushy-storage
 # Contact Email: zeeland@foxmail.com
 
+import shutil
 
-from cushy_storage._core import disk_cache, CushyDict, BaseDict
-from cushy_storage.orm import BaseORMModel, CushyOrmCache
 
-__all__ = [
-    'disk_cache',
-    'CushyDict',
-    'BaseDict',
-    'BaseORMModel',
-    'CushyOrmCache'
-]
+def delete_cache():
+    shutil.rmtree("cache")
+
+
+def delete_all_cache_files(cache_file: dict):
+    """delete cache files generated from unittest"""
+    for cur_file_key in cache_file.keys():
+        shutil.rmtree(cache_file[cur_file_key])

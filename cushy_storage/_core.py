@@ -27,8 +27,8 @@ import threading
 from pathlib import Path
 from typing import MutableMapping, Callable, Tuple, Union, Any, List
 
-from cushy_storage.base import _List, BASE_TYPE
-from cushy_storage.utils import get_default_storage_path
+from cushy_storage.base import EnhancedList, BASE_TYPE
+from cushy_storage.utils import get_default_cache_path
 
 __all__ = ['BaseDict', 'CushyDict', 'disk_cache']
 
@@ -152,7 +152,7 @@ class CushyDict(BaseDict):
 
     def __init__(
             self,
-            path: str = get_default_storage_path(),
+            path: str = get_default_cache_path(),
             compress: Union[str, Tuple[Callable, Callable], None] = None,
             serialize: Union[str, Tuple[Callable, Callable], None] = 'json'
     ):
@@ -165,11 +165,11 @@ class CushyDict(BaseDict):
         super().__init__(path, compress)
         self.serialize, self.deserialize = _method_convert_helper(serialize, _SERIALIZATION)
 
-    def __getitem__(self, k: str):
+    def __getitem__(self, k: str) -> Any:
         ret = self.deserialize(super().__getitem__(k))
 
         if isinstance(ret, list):
-            ret: List = _List(ret)
+            ret: List = EnhancedList(ret)
         return ret
 
     def __setitem__(self, k: str, v: Any):

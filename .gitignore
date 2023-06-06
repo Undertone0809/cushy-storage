@@ -1,5 +1,7 @@
 output_gpt.md
-tests/test-cache
+tests/cache
+tests/log
+
 command
 /example/data
 /example/cache

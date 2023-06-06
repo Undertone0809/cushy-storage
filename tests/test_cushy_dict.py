@@ -19,11 +19,12 @@
 
 import unittest
 from cushy_storage import CushyDict
+from cushy_storage.base import EnhancedList
 
 
 class TestCushyDict(unittest.TestCase):
     def test_read_and_write_data(self):
-        cache = CushyDict("./test-cache")
+        cache = CushyDict("./cache/test-cushy-dict")
         cache['a'] = 10
         self.assertEqual(cache['a'], 10)
 
@@ -41,10 +42,10 @@ class TestCushyDict(unittest.TestCase):
         self.assertEqual(cache['e'], ["hello", 1])
 
     def test_data_type(self):
-        cache = CushyDict("./test-cache")
+        cache = CushyDict("./cache/test-cushy-dict")
         self.assertEqual(type(cache['a']), int)
         self.assertEqual(type(cache['b']), str)
-        self.assertEqual(type(cache['c']), list)
+        self.assertEqual(type(cache['c']), EnhancedList)
         self.assertEqual(type(cache['d']), dict)
         # todo https://github.com/Undertone0809/cushy-stroage/issues/1
-        self.assertEqual(type(cache['e']), list)
+        self.assertEqual(type(cache['e']), EnhancedList)
