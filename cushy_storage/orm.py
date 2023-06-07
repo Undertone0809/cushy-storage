@@ -46,6 +46,27 @@ class QuerySet:
         return cls(obj)
 
     def filter(self, **kwargs):
+        """
+        filter by specified parameter
+        Args:
+            **kwargs: The property of the object you want to query
+
+        Returns: return a new QuerySet object
+
+        Examples:
+            class User(BaseORMModel):
+                def __init__(self, name, age):
+                    super().__init__()
+                    self.name = name
+                    self.age = age
+            # get all user, you will get a List[User] type data.
+            # Actually, it will get two users named "jack" and "jasmine".
+            orm_cache.query("User").filter(age=18).all()
+            # get first in queryset, you will get a User type data
+            orm_cache.query("User").filter(name="jack").first()
+            # filter by multiple parameters
+            orm_cache.query("User").filter(name="jack", age=18).first()
+        """
         result: List[BaseORMModel] = []
         for item in self._data:
             for query_key in kwargs.keys():
@@ -90,15 +111,19 @@ class ORMMixin(ABC):
             return QuerySet(original_result, name=_get_class_name(class_name_or_obj))
         return QuerySet(original_result)
 
-    def add(self, obj: Union[BaseORMModel, QuerySet]) -> QuerySet:
-        original_result = self._get_original_data_from_cache(obj.__name__)
+    def add(self, obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]) -> QuerySet:
+        obj_name = obj.__name__ if not isinstance(obj, list) else obj[0].__name__
+        original_result = self._get_original_data_from_cache(obj_name)
 
         if isinstance(obj, BaseORMModel):
             original_result.append(obj)
         elif isinstance(obj, QuerySet):
-            original_result = original_result + obj.all()
-        self.__setitem__(obj.__name__, original_result)
-        return QuerySet(self.__getitem__(obj.__name__))
+            original_result += obj.all()
+        else:
+            original_result += obj
+
+        self[obj_name] = original_result
+        return QuerySet(self[obj_name])
 
     def delete(self, obj: BaseORMModel):
         """delete obj by obj._unique_id"""
@@ -136,6 +161,5 @@ class CushyOrmCache(CushyDict, ORMMixin):
             self,
             path: str = get_default_cache_path(),
             compress: Union[str, Tuple[Callable, Callable], None] = None,
-            serialize: Union[str, Tuple[Callable, Callable], None] = 'pickle'
     ):
-        super().__init__(path, compress, serialize)
+        super().__init__(path, compress, "pickle")
