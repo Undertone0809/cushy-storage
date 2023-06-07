@@ -88,10 +88,15 @@ class TestORM(unittest.TestCase):
         self.assertEqual(queryset_by_str.first().name, "jack")
         self.assertEqual(queryset_by_str.first().age, 18)
 
-        # add more user
-        user = User("jasmine", 22)
-        queryset = orm_cache.add(user)
-        self.assertEqual(len(queryset.all()), 2)
+        # add multiple users
+        user_list: List[User] = [
+            User("zeeland", 22),
+            User("hizeros", 20),
+            User("honey", 18),
+        ]
+        queryset = orm_cache.add(user_list)
+        self.assertEqual(len(queryset.all()), 4)
+        self.assertIsNotNone(queryset.filter(name="zeeland").first())
 
     def test_orm_delete(self):
         orm_cache = CushyOrmCache(cache_file['test_orm_delete'])
