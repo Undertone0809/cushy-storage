@@ -31,9 +31,9 @@ def get_logger():
 
 
 def _check_log_path():
-    log_path = os.path.join(utils.get_default_log_path(), 'log')
-    if not os.path.exists(log_path):
-        os.makedirs(log_path)
+    """check whether log file exist"""
+    if not os.path.exists(utils.get_default_log_path()):
+        os.makedirs(utils.get_default_log_path())
 
 
 def get_log_name() -> str:
@@ -43,18 +43,16 @@ def get_log_name() -> str:
 
 
 def enable_log():
-    if platform.system() == 'Windows':
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format='[%(levelname)s] %(asctime)s %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S',
-            handlers=[
-                logging.FileHandler(f"{get_log_name()}", mode='w', encoding='utf-8'),
-                logging.StreamHandler()
-            ],
-        )
-    elif platform.system() == 'Linux':
-        pass
+    """enable logging to terminal and file"""
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='[%(levelname)s] %(asctime)s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        handlers=[
+            logging.FileHandler(f"{get_log_name()}", mode='w', encoding='utf-8'),
+            logging.StreamHandler()
+        ],
+    )
 
 
 def enable_log_no_file():
