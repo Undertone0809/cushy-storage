@@ -20,6 +20,6 @@
 
 from cushy_storage import BaseDict
 
-cache = BaseDict('./cache')
-cache['key'] = b'value'
-print(cache['key'])
+cache = BaseDict("./cache")
+cache["key"] = b"value"
+print(cache["key"])

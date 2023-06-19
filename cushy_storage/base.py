@@ -19,9 +19,7 @@
 
 from typing import List
 
-BASE_TYPE = [
-    int, str, float, dict, list, tuple, bytes
-]
+BASE_TYPE = [int, str, float, dict, list, tuple, bytes]
 
 
 class EnhancedList(list):

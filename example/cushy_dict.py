@@ -19,15 +19,15 @@
 
 from cushy_storage import CushyDict
 
-cache = CushyDict('./cache')
-cache['key'] = {'value': 42}
-print(cache['key'])
+cache = CushyDict("./cache")
+cache["key"] = {"value": 42}
+print(cache["key"])
 
-cache['a'] = 1
-print(cache['a'])
+cache["a"] = 1
+print(cache["a"])
 
-cache['b'] = "hello world"
-print(cache['b'])
+cache["b"] = "hello world"
+print(cache["b"])
 
-cache['arr'] = [1, 2, 3, 4, 5]
-print(cache['arr'])
+cache["arr"] = [1, 2, 3, 4, 5]
+print(cache["arr"])

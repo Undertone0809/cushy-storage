@@ -21,7 +21,6 @@ from cushy_storage.orm import BaseORMModel, CushyOrmCache
 
 
 class User(BaseORMModel):
-
     def __init__(self, name, age):
         super().__init__()
         self.name = name
@@ -50,7 +49,7 @@ orm_cache.query("User").filter(name="jack").first()
 orm_cache.query("User").filter(name="jack", age=18).first()
 
 """update"""
-user = orm_cache.query("User").filter(name='jack').first()
+user = orm_cache.query("User").filter(name="jack").first()
 user.age = 18
 orm_cache.update_obj(user)
 

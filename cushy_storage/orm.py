@@ -26,15 +26,15 @@ from cushy_storage.utils import get_default_cache_path
 
 
 class BaseORMModel(ABC):
-
     def __init__(self):
         self.__name__ = type(self).__name__
         self._unique_id = str(uuid.uuid4())
 
 
 class QuerySet:
-
-    def __init__(self, obj: Union[List[BaseORMModel], BaseORMModel], name: Optional[str] = None):
+    def __init__(
+        self, obj: Union[List[BaseORMModel], BaseORMModel], name: Optional[str] = None
+    ):
         self._data: List[BaseORMModel] = obj
         if isinstance(obj, BaseORMModel):
             self._data = [obj]
@@ -97,8 +97,9 @@ def _get_class_name(class_name_or_obj: Union[str, type(BaseORMModel)]) -> str:
 
 
 class ORMMixin(ABC):
-
-    def _get_original_data_from_cache(self, class_name_or_obj: Union[str, type(BaseORMModel)]) -> List[BaseORMModel]:
+    def _get_original_data_from_cache(
+        self, class_name_or_obj: Union[str, type(BaseORMModel)]
+    ) -> List[BaseORMModel]:
         class_name = _get_class_name(class_name_or_obj)
         if class_name not in self:
             self.__setitem__(class_name, [])
@@ -127,7 +128,9 @@ class ORMMixin(ABC):
 
     def delete(self, obj: BaseORMModel):
         """delete obj by obj._unique_id"""
-        original_result: List[BaseORMModel] = self._get_original_data_from_cache(obj.__name__)
+        original_result: List[BaseORMModel] = self._get_original_data_from_cache(
+            obj.__name__
+        )
         copy_result: List[BaseORMModel] = original_result.copy()
 
         for item in copy_result:
@@ -138,7 +141,9 @@ class ORMMixin(ABC):
         raise ValueError(f"can not found object: {obj}")
 
     def update_obj(self, obj: BaseORMModel):
-        original_result: List[BaseORMModel] = self._get_original_data_from_cache(obj.__name__)
+        original_result: List[BaseORMModel] = self._get_original_data_from_cache(
+            obj.__name__
+        )
         copy_result: List[BaseORMModel] = original_result.copy()
 
         for i in range(len(copy_result)):
@@ -156,10 +161,9 @@ class ORMMixin(ABC):
 
 
 class CushyOrmCache(CushyDict, ORMMixin):
-
     def __init__(
-            self,
-            path: str = get_default_cache_path(),
-            compress: Union[str, Tuple[Callable, Callable], None] = None,
+        self,
+        path: str = get_default_cache_path(),
+        compress: Union[str, Tuple[Callable, Callable], None] = None,
     ):
         super().__init__(path, compress, "pickle")

@@ -30,15 +30,15 @@ from typing import MutableMapping, Callable, Tuple, Union, Any, List
 from cushy_storage.base import EnhancedList, BASE_TYPE
 from cushy_storage.utils import get_default_cache_path
 
-__all__ = ['BaseDict', 'CushyDict', 'disk_cache']
+__all__ = ["BaseDict", "CushyDict", "disk_cache"]
 
 # Compression algorithms and their corresponding functions
 _COMPRESS = {
-    'zlib': (
+    "zlib": (
         zlib.compress,
         zlib.decompress,
     ),
-    'lzma': (
+    "lzma": (
         lzma.compress,
         lzma.decompress,
     ),
@@ -46,12 +46,14 @@ _COMPRESS = {
 
 # Serialization algorithms and their corresponding functions
 _SERIALIZATION = {
-    'pickle': (
+    "pickle": (
         pickle.dumps,
         pickle.loads,
     ),
-    'json': (
-        lambda x: json.dumps(x, sort_keys=True, ensure_ascii=False, separators=(',', ':')).encode('utf8'),
+    "json": (
+        lambda x: json.dumps(
+            x, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+        ).encode("utf8"),
         json.loads,
     ),
 }
@@ -60,7 +62,9 @@ _SERIALIZATION = {
 _LOCKS = {hex(i)[2:].zfill(2): threading.Lock() for i in range(256)}
 
 
-def _method_convert_helper(s: Union[str, Tuple[Callable, Callable], None], d: dict) -> Tuple[Callable, Callable]:
+def _method_convert_helper(
+    s: Union[str, Tuple[Callable, Callable], None], d: dict
+) -> Tuple[Callable, Callable]:
     """
     Helper function to get the compression or serialization functions based on input parameter
     """
@@ -73,10 +77,14 @@ def _method_convert_helper(s: Union[str, Tuple[Callable, Callable], None], d: di
 
 
 class BaseDict(MutableMapping[str, bytes]):
-    def __init__(self, path: str, compress: Union[str, Tuple[Callable, Callable], None] = None):
+    def __init__(
+        self, path: str, compress: Union[str, Tuple[Callable, Callable], None] = None
+    ):
         self.path = Path(path)
         if self.path.is_file():
-            raise Exception('path has exist')  # Raise an exception if the path already exists as a file
+            raise Exception(
+                "path has exist"
+            )  # Raise an exception if the path already exists as a file
         self.path.mkdir(parents=True, exist_ok=True)
         self.dirs = set()
         self.compress, self.decompress = _method_convert_helper(compress, _COMPRESS)
@@ -97,7 +105,7 @@ class BaseDict(MutableMapping[str, bytes]):
             else:
                 print("[my_key] not in my cache")
         """
-        return (self.path / k[:2] / (k[2:] + '_')).is_file()
+        return (self.path / k[:2] / (k[2:] + "_")).is_file()
 
     def __getitem__(self, k: str):
         """
@@ -105,9 +113,9 @@ class BaseDict(MutableMapping[str, bytes]):
         """
         if k not in self:
             raise KeyError(k)
-        rk = hashlib.md5(k.encode('utf8')).hexdigest()[:2]
+        rk = hashlib.md5(k.encode("utf8")).hexdigest()[:2]
         with _LOCKS[rk]:
-            with open(self.path / k[:2] / (k[2:] + '_'), 'rb') as f:
+            with open(self.path / k[:2] / (k[2:] + "_"), "rb") as f:
                 t = f.read()
         return self.decompress(t)
 
@@ -119,16 +127,16 @@ class BaseDict(MutableMapping[str, bytes]):
             (self.path / k[:2]).mkdir(exist_ok=True)
             self.dirs.add(k[:2])
         t = self.compress(v)
-        rk = hashlib.md5(k.encode('utf8')).hexdigest()[:2]
+        rk = hashlib.md5(k.encode("utf8")).hexdigest()[:2]
         with _LOCKS[rk]:
-            with open(self.path / k[:2] / (k[2:] + '_'), 'wb') as f:
+            with open(self.path / k[:2] / (k[2:] + "_"), "wb") as f:
                 f.write(t)
 
     def __delitem__(self, k: str):
         """
         Remove the cached item using its key
         """
-        os.remove(self.path / k[:2] / (k[2:] + '_'))
+        os.remove(self.path / k[:2] / (k[2:] + "_"))
 
     def __len__(self):
         """
@@ -151,10 +159,10 @@ class CushyDict(BaseDict):
     """
 
     def __init__(
-            self,
-            path: str = get_default_cache_path(),
-            compress: Union[str, Tuple[Callable, Callable], None] = None,
-            serialize: Union[str, Tuple[Callable, Callable], None] = 'json'
+        self,
+        path: str = get_default_cache_path(),
+        compress: Union[str, Tuple[Callable, Callable], None] = None,
+        serialize: Union[str, Tuple[Callable, Callable], None] = "json",
     ):
         """
         Args:
@@ -163,7 +171,9 @@ class CushyDict(BaseDict):
             serialize: json or pickle
         """
         super().__init__(path, compress)
-        self.serialize, self.deserialize = _method_convert_helper(serialize, _SERIALIZATION)
+        self.serialize, self.deserialize = _method_convert_helper(
+            serialize, _SERIALIZATION
+        )
 
     def __getitem__(self, k: str) -> Any:
         ret = self.deserialize(super().__getitem__(k))
@@ -173,19 +183,26 @@ class CushyDict(BaseDict):
         return ret
 
     def __setitem__(self, k: str, v: Any):
-        if isinstance(v, list) and self.deserialize is json.loads and len(v) > 0 and type(v[0]) not in BASE_TYPE:
-            raise ValueError((
-                f"Can not use 'json' to serialize your '{type(v[0])}' data in '{k}'. If you want to store "
-                "complex data or custom data, please use 'pickle' to serialize."
-            ))
+        if (
+            isinstance(v, list)
+            and self.deserialize is json.loads
+            and len(v) > 0
+            and type(v[0]) not in BASE_TYPE
+        ):
+            raise ValueError(
+                (
+                    f"Can not use 'json' to serialize your '{type(v[0])}' data in '{k}'. If you want to store "
+                    "complex data or custom data, please use 'pickle' to serialize."
+                )
+            )
         return super().__setitem__(k, self.serialize(v))
 
 
-def disk_cache(path: str = None, compress: str = None, serialize: str = 'json'):
+def disk_cache(path: str = None, compress: str = None, serialize: str = "json"):
     """
     Decorator that caches the output of a function to disk
     """
-    if serialize not in ['pickle', 'json']:
+    if serialize not in ["pickle", "json"]:
         ValueError("Your serializer must be 'pickle' or 'json'")
     dump = _method_convert_helper(serialize, _SERIALIZATION)[0]
 
@@ -194,15 +211,15 @@ def disk_cache(path: str = None, compress: str = None, serialize: str = 'json'):
         name = func.__name__
         if path is None:
             # If no cache path is specified, create a default one based on the function name and serialization algorithm
-            path = f'./_cushycache_{name}_{serialize}'
+            path = f"./_cushycache_{name}_{serialize}"
         map = CushyDict(path, serialize=serialize, compress=compress)
 
         def cached_func(*args, **kwargs):
             # Serialize the function arguments and use their MD5 hash as the cache key
             input_data = [name, args, kwargs]
             md5 = hashlib.md5(dump(input_data)).hexdigest()
-            ext = 'pkl' if serialize == 'pickle' else 'json'
-            filename = f'{md5}.{ext}'
+            ext = "pkl" if serialize == "pickle" else "json"
+            filename = f"{md5}.{ext}"
 
             if filename in map:
                 # If the cached output exists, return it

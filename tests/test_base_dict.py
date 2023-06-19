@@ -23,24 +23,24 @@ from cushy_storage import BaseDict
 
 class TestBaseDict(unittest.TestCase):
     def test_basic_operations(self):
-        cache = BaseDict('./cache/test-base-dict')
+        cache = BaseDict("./cache/test-base-dict")
 
         # Test adding items to the cache
-        cache['foo'] = b'bar'
-        self.assertEqual(cache['foo'], b'bar')
+        cache["foo"] = b"bar"
+        self.assertEqual(cache["foo"], b"bar")
 
         # Test deleting items from the cache
-        del cache['foo']
+        del cache["foo"]
         with self.assertRaises(KeyError):
-            cache['foo']
+            cache["foo"]
 
         # Test checking if an item is in the cache
-        self.assertFalse('foo' in cache)
+        self.assertFalse("foo" in cache)
 
     def test_compression(self):
-        cache = BaseDict('./cache/test-base-dict', compress='lzma')
+        cache = BaseDict("./cache/test-base-dict", compress="lzma")
 
         # Test storing and retrieving a large string in the cache using LZMA compression
-        data = 'a' * (1024 * 1024)
-        cache['big_data'] = data.encode()
-        self.assertEqual(cache['big_data'].decode(), data)
+        data = "a" * (1024 * 1024)
+        cache["big_data"] = data.encode()
+        self.assertEqual(cache["big_data"].decode(), data)

@@ -34,7 +34,6 @@ enable_log()
 
 
 class User(BaseORMModel):
-
     def __init__(self, name, age):
         super().__init__()
         self.name = name
@@ -42,7 +41,6 @@ class User(BaseORMModel):
 
 
 class TestORM(unittest.TestCase):
-
     @classmethod
     def tearDownClass(cls):
         delete_cache()
@@ -73,7 +71,7 @@ class TestORM(unittest.TestCase):
         self.assertEqual(queried_user.age, 18)
 
     def test_orm_add_and_query(self):
-        orm_cache = CushyOrmCache(cache_file['test_orm_add_and_query'])
+        orm_cache = CushyOrmCache(cache_file["test_orm_add_and_query"])
         user = User("jack", 18)
         # assert add()
         queryset = orm_cache.add(user)
@@ -99,7 +97,7 @@ class TestORM(unittest.TestCase):
         self.assertIsNotNone(queryset.filter(name="zeeland").first())
 
     def test_orm_delete(self):
-        orm_cache = CushyOrmCache(cache_file['test_orm_delete'])
+        orm_cache = CushyOrmCache(cache_file["test_orm_delete"])
 
         # add single user
         user_a = User("user a", 20)
@@ -121,7 +119,7 @@ class TestORM(unittest.TestCase):
         self.assertEqual(queryset.first().age, 20)
 
     def test_orm_update(self):
-        orm_cache = CushyOrmCache(cache_file['test_orm_update'])
+        orm_cache = CushyOrmCache(cache_file["test_orm_update"])
         user = User("old username", 18)
         orm_cache.add(user)
 
