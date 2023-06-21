@@ -34,6 +34,9 @@ user = User("jack", 18)
 orm_cache.add(user)
 user = User("jasmine", 18)
 orm_cache.add(user)
+# or you can pass a list
+orm_cache.add([User("Zeeland", 10), User("Zero", 20)])
+
 
 """query all user"""
 users = orm_cache.query(User).all()

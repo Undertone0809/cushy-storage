@@ -20,10 +20,10 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setuptools.setup(
     name="cushy-storage",
-    version="1.1.2",
+    version="1.1.3",
     author="Zeeland",
     author_email="zeeland@foxmail.com",
-    description="A data local persistence framework library",
+    description="A data local persistence ORM framework",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Undertone0809/cushy-storage",
@@ -41,5 +41,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    keywords="storage, serialization, json, cushy-storage, cushy_storage",
+    keywords="storage, ORM, serialization, json, cushy-storage, cushy_storage",
 )

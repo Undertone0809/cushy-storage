@@ -14,7 +14,7 @@
 #
 # Copyright Owner: Zeeland
 # GitHub Link: https://github.com/Undertone0809/
-# Project Link: https://github.com/Undertone0809/promptulate
+# Project Link: https://github.com/Undertone0809/cushy-storage
 # Contact Email: zeeland@foxmail.com
 
 import os
@@ -38,7 +38,7 @@ def _check_log_path():
 
 def get_log_name() -> str:
     _check_log_path()
-    cur_time = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    cur_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     return f"{utils.get_default_log_path()}/log_{cur_time}.log"
 
 
@@ -46,11 +46,11 @@ def enable_log():
     """enable logging to terminal and file"""
     logging.basicConfig(
         level=logging.DEBUG,
-        format='[%(levelname)s] %(asctime)s %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
+        format="[%(levelname)s] %(asctime)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[
-            logging.FileHandler(f"{get_log_name()}", mode='w', encoding='utf-8'),
-            logging.StreamHandler()
+            logging.FileHandler(f"{get_log_name()}", mode="w", encoding="utf-8"),
+            logging.StreamHandler(),
         ],
     )
 
@@ -58,6 +58,6 @@ def enable_log():
 def enable_log_no_file():
     logging.basicConfig(
         level=logging.DEBUG,
-        format='[%(levelname)s] %(asctime)s %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
+        format="[%(levelname)s] %(asctime)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )

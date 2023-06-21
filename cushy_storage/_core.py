@@ -63,7 +63,7 @@ _LOCKS = {hex(i)[2:].zfill(2): threading.Lock() for i in range(256)}
 
 
 def _method_convert_helper(
-    s: Union[str, Tuple[Callable, Callable], None], d: dict
+        s: Union[str, Tuple[Callable, Callable], None], d: dict
 ) -> Tuple[Callable, Callable]:
     """
     Helper function to get the compression or serialization functions based on input parameter
@@ -78,7 +78,7 @@ def _method_convert_helper(
 
 class BaseDict(MutableMapping[str, bytes]):
     def __init__(
-        self, path: str, compress: Union[str, Tuple[Callable, Callable], None] = None
+            self, path: str, compress: Union[str, Tuple[Callable, Callable], None] = None
     ):
         self.path = Path(path)
         if self.path.is_file():
@@ -159,10 +159,10 @@ class CushyDict(BaseDict):
     """
 
     def __init__(
-        self,
-        path: str = get_default_cache_path(),
-        compress: Union[str, Tuple[Callable, Callable], None] = None,
-        serialize: Union[str, Tuple[Callable, Callable], None] = "json",
+            self,
+            path: str = get_default_cache_path(),
+            compress: Union[str, Tuple[Callable, Callable], None] = None,
+            serialize: Union[str, Tuple[Callable, Callable], None] = "json",
     ):
         """
         Args:
@@ -184,10 +184,10 @@ class CushyDict(BaseDict):
 
     def __setitem__(self, k: str, v: Any):
         if (
-            isinstance(v, list)
-            and self.deserialize is json.loads
-            and len(v) > 0
-            and type(v[0]) not in BASE_TYPE
+                isinstance(v, list)
+                and self.deserialize is json.loads
+                and len(v) > 0
+                and type(v[0]) not in BASE_TYPE
         ):
             raise ValueError(
                 (
