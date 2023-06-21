@@ -27,7 +27,7 @@ def get_project_root_path() -> str:
     project_path = os.getcwd()
     max_depth = 10
     count = 0
-    while not os.path.exists(os.path.join(project_path, 'README.md')):
+    while not os.path.exists(os.path.join(project_path, "README.md")):
         project_path = os.path.split(project_path)[0]
         count += 1
         if count > max_depth:
@@ -36,14 +36,16 @@ def get_project_root_path() -> str:
 
 
 def get_default_storage_path(file_name) -> str:
-    if platform.system() == 'Windows':
+    if platform.system() == "Windows":
         return f"./{file_name}"
-    elif platform.system() == 'Linux':
-        dir_path = os.environ.get('TMPDIR')
+    elif platform.system() == "Linux" or "Darwin":
+        dir_path = os.environ.get("TMPDIR")
         if not dir_path:
             dir_path = tempfile.gettempdir()
-        dir_path = os.path.join(dir_path, "prompt_me")
+        dir_path = os.path.join(dir_path, "cushy_storage")
         return f"{dir_path}/{file_name}"
+    else:
+        return f"./{file_name}"
 
 
 def get_default_cache_path() -> str:

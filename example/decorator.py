@@ -21,9 +21,9 @@
 from cushy_storage import disk_cache
 
 
-@disk_cache('./cache')
+@disk_cache("./cache")
 def my_func():
-    return {'value': 42}
+    return {"value": 42}
 
 
 result = my_func()

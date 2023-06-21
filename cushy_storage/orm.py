@@ -26,24 +26,27 @@ from cushy_storage.utils import get_default_cache_path
 
 
 class BaseORMModel(ABC):
-
     def __init__(self):
         self.__name__ = type(self).__name__
         self._unique_id = str(uuid.uuid4())
 
 
 class QuerySet:
-
-    def __init__(self, obj: Union[List[BaseORMModel], BaseORMModel], name: Optional[str] = None):
+    def __init__(
+            self, obj: Union[List[BaseORMModel], BaseORMModel], name: Optional[str] = None
+    ):
         self._data: List[BaseORMModel] = obj
         if isinstance(obj, BaseORMModel):
             self._data = [obj]
-        self.__name__ = name if name else self._data[0].__name__
+        if len(self._data) == 0 and name:
+            self.__name__ = name
+        else:
+            self.__name__ = name if name else self._data[0].__name__
 
     @classmethod
-    def _from_filter(cls, obj: Union[List[BaseORMModel], BaseORMModel]):
+    def _from_filter(cls, obj: Union[List[BaseORMModel], BaseORMModel], name: Optional[str] = None):
         """generate a new queryset from filter"""
-        return cls(obj)
+        return cls(obj, name)
 
     def filter(self, **kwargs):
         """
@@ -74,7 +77,7 @@ class QuerySet:
                     continue
                 result.append(item)
 
-        return self._from_filter(result)
+        return self._from_filter(result, self.__name__)
 
     def all(self) -> Optional[List[BaseORMModel]]:
         return self._data
@@ -97,14 +100,15 @@ def _get_class_name(class_name_or_obj: Union[str, type(BaseORMModel)]) -> str:
 
 
 class ORMMixin(ABC):
-
-    def _get_original_data_from_cache(self, class_name_or_obj: Union[str, type(BaseORMModel)]) -> List[BaseORMModel]:
+    def _get_original_data_from_cache(
+            self, class_name_or_obj: Union[str, type(BaseORMModel)]
+    ) -> List[BaseORMModel]:
         class_name = _get_class_name(class_name_or_obj)
         if class_name not in self:
             self.__setitem__(class_name, [])
         return self.__getitem__(class_name)
 
-    def query(self, class_name_or_obj: Union[str, type(BaseORMModel)]):
+    def query(self, class_name_or_obj: Union[str, type(BaseORMModel)]) -> QuerySet:
         """query all objects by class name"""
         original_result = self._get_original_data_from_cache(class_name_or_obj)
         if len(original_result) == 0:
@@ -127,7 +131,9 @@ class ORMMixin(ABC):
 
     def delete(self, obj: BaseORMModel):
         """delete obj by obj._unique_id"""
-        original_result: List[BaseORMModel] = self._get_original_data_from_cache(obj.__name__)
+        original_result: List[BaseORMModel] = self._get_original_data_from_cache(
+            obj.__name__
+        )
         copy_result: List[BaseORMModel] = original_result.copy()
 
         for item in copy_result:
@@ -138,7 +144,9 @@ class ORMMixin(ABC):
         raise ValueError(f"can not found object: {obj}")
 
     def update_obj(self, obj: BaseORMModel):
-        original_result: List[BaseORMModel] = self._get_original_data_from_cache(obj.__name__)
+        original_result: List[BaseORMModel] = self._get_original_data_from_cache(
+            obj.__name__
+        )
         copy_result: List[BaseORMModel] = original_result.copy()
 
         for i in range(len(copy_result)):
@@ -156,7 +164,6 @@ class ORMMixin(ABC):
 
 
 class CushyOrmCache(CushyDict, ORMMixin):
-
     def __init__(
             self,
             path: str = get_default_cache_path(),

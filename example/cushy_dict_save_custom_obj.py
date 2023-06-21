@@ -28,15 +28,15 @@ class User:
 
 
 def main():
-    cache = CushyDict(serialize='pickle')
+    cache = CushyDict(serialize="pickle")
     user = User("Jack", 18)
-    cache['user'] = user
+    cache["user"] = user
 
-    user = cache['user']
+    user = cache["user"]
     print(type(user))
-    print(cache['user'].name)
-    print(cache['user'].age)
+    print(cache["user"].name)
+    print(cache["user"].age)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
