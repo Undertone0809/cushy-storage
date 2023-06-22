@@ -42,7 +42,7 @@ cushy-storage是一个基于磁盘缓存的ORM框架，你可以使用轻松的�
 
 # 快速上手
 
-阅读[Quick Start](quickstart.md)开始快速上手教程，或者您也可以直接根据想要使用的功能阅读下面相关的章节。
+阅读[Quick Start](quickstart.md#特性)开始快速上手教程，或者您也可以直接根据想要使用的功能阅读下面相关的章节。
 
 `cushy-storage` 的使用主要分为四个部分，`CushyOrmCache` `CushyDict` `BaseDict` `disk_cache`
 

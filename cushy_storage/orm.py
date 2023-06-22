@@ -133,6 +133,13 @@ def _get_class_name(class_name_or_obj: Union[str, type(BaseORMModel)]) -> str:
     return class_name
 
 
+def _get_obj_name(obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]) -> str:
+    if isinstance(obj, BaseORMModel) or isinstance(obj, QuerySet):
+        return obj.__name__
+    elif isinstance(obj, List):
+        return obj[0].__name__
+
+
 class ORMMixin(ABC):
     def _get_original_data_from_cache(
         self, class_name_or_obj: Union[str, type(BaseORMModel)]
@@ -157,8 +164,10 @@ class ORMMixin(ABC):
             self.set(queryset)
 
     def add(self, obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]) -> QuerySet:
-        obj_name = obj.__name__ if not isinstance(obj, list) else obj[0].__name__
-        original_result = self._get_original_data_from_cache(obj_name)
+        obj_name = _get_obj_name(obj)
+        original_result: List[BaseORMModel] = self._get_original_data_from_cache(
+            obj_name
+        )
 
         if isinstance(obj, BaseORMModel):
             original_result.append(obj)
@@ -170,15 +179,18 @@ class ORMMixin(ABC):
         self[obj_name] = original_result
         return QuerySet(self[obj_name])
 
-    def delete(self, obj: Union[List[BaseORMModel], BaseORMModel]):
+    def delete(self, obj: Union[List[BaseORMModel], QuerySet, BaseORMModel]):
         """delete obj by obj.__unique_id__"""
+        obj_name = _get_obj_name(obj)
         original_result: List[BaseORMModel] = self._get_original_data_from_cache(
-            obj.__name__
+            obj_name
         )
         copy_result: List[BaseORMModel] = original_result.copy()
 
         if isinstance(obj, BaseORMModel):
             obj = [obj]
+        elif isinstance(obj, QuerySet):
+            obj = obj.all()
         if len(obj) == 0:
             return
 
@@ -186,17 +198,17 @@ class ORMMixin(ABC):
             for input_obj_item in obj:
                 if cache_obj_item.__unique_id__ == input_obj_item.__unique_id__:
                     copy_result.remove(cache_obj_item)
-        return self.__setitem__(obj[0].__name__, copy_result)
+        return self.__setitem__(obj_name, copy_result)
 
     def set(self, obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]):
-        if isinstance(obj, QuerySet):
-            obj = obj.all()
-        elif isinstance(obj, BaseORMModel):
+        obj_name = _get_obj_name(obj)
+        if isinstance(obj, BaseORMModel):
             obj = [obj]
-
+        elif isinstance(obj, QuerySet):
+            obj = obj.all()
         if len(obj) == 0:
             return
-        return self.__setitem__(obj[0].__name__, obj)
+        return self.__setitem__(obj_name, obj)
 
     def update_obj(self, obj: BaseORMModel):
         original_result: List[BaseORMModel] = self._get_original_data_from_cache(
