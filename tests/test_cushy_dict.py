@@ -38,7 +38,6 @@ class TestCushyDict(unittest.TestCase):
         self.assertEqual(cache["d"], {"key": "value"})
 
         cache["e"] = ("hello", 1)
-        print(type(cache["e"]))
         self.assertEqual(cache["e"], ["hello", 1])
 
     def test_data_type(self):

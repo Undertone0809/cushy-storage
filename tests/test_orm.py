@@ -29,6 +29,8 @@ cache_file = {
     "test_orm_add_and_query": "./cache/test-cushy-orm-cache",
     "test_orm_delete": "./cache/test-cushy-orm-cache-orm-delete",
     "test_orm_update": "./cache/test-cushy-orm-cache-orm-update",
+    "test_orm_set": "./cache/test-cushy-orm-cache-orm-set",
+    "test_orm_remove_duplicates": "./cache/test-cushy-orm-cache-orm-remove-duplicates",
 }
 enable_log()
 
@@ -129,3 +131,27 @@ class TestORM(unittest.TestCase):
         queried_user = orm_cache.query(User).filter(name="new username").first()
         self.assertIsNotNone(queried_user)
         self.assertEqual(queried_user.name, "new username")
+
+    def test_orm_set(self):
+        orm_cache = CushyOrmCache(cache_file["test_orm_set"])
+        users = [User("no exist user", 18)] * 10
+        orm_cache.add(users)
+        self.assertEqual(len(orm_cache.query(User).all()), 10)
+
+        orm_cache.set(User("existing user", 10))
+        queryset = orm_cache.query(User).all()
+        self.assertEqual(len(queryset), 1)
+        self.assertEqual(queryset[0].name, "existing user")
+
+    def test_orm_remove_duplicates(self):
+        orm_cache = CushyOrmCache(cache_file["test_orm_remove_duplicates"])
+        users = []
+        for i in range(10):
+            users.append(User(name=f"user1", age=1))
+        users.append(User(name="last user", age=18))
+        orm_cache.add(users)
+        self.assertEqual(len(orm_cache.query(User).all()), 11)
+
+        orm_cache.remove_duplicates(User)
+        queryset = orm_cache.query(User).all()
+        self.assertEqual(len(queryset), 2)

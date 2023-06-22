@@ -34,30 +34,29 @@ cushy-storage是一个基于磁盘缓存的ORM框架，你可以使用轻松的�
 - 提供多种序列化操作
 - 提供多种数据压缩方式
 
-# 快速开始
+# 文档
 
-- [官方文档 github-pages](https://undertone0809.github.io/cushy-storage/#/)
-- [官方文档 gitee-pages](https://zeeland.gitee.io/cushy-storage/#/)
-- [当前开发计划](https://undertone0809.github.io/cushy-storage/#/plan)
-- [参与贡献/开发者手册](https://undertone0809.github.io/cushy-storage/#/contribution)
-- [常见问题](https://undertone0809.github.io/cushy-storage/#/qa)
-- [pypi仓库](https://pypi.org/project/cushy-storage/)
-
-# 安装
-
-```bash
-pip install cushy-storage --upgrade 
-```
+- [document github-pages](https://undertone0809.github.io/cushy-storage/#/)
+- [document gitee-pages](https://zeeland.gitee.io/cushy-storage/#/)
+- [https://pypi.org/project/broadcast-service/](https://pypi.org/project/cushy-storage/)
 
 # 快速上手
 
-`cushy-storage` 的使用主要分为四个部分，`CushyOrmCache` `CushyDict` `BaseDict` `disk_cache`，更多详细信息，请阅读相关文档
+阅读[Quick Start](quickstart.md)开始快速上手教程，或者您也可以直接根据想要使用的功能阅读下面相关的章节。
 
-- [CushyORMCache](https://undertone0809.github.io/cushy-storage/#/cushy-orm-cache?id=cushyormcache)
-  基于ORM框架的对象存储，可以十分方便的对对象级数据进行增删改查
-- [CushyDict](https://undertone0809.github.io/cushy-storage/#/cushy-dict): `BaseDict`的增强版，存储各种类型的数据，包括基本数据类型与自定义数据类型
-- [BaseDict](https://undertone0809.github.io/cushy-storage/#/base-dict): 存储基础的二进制数据
-- [disk_cache](https://undertone0809.github.io/cushy-storage/#/disk-cache): 函数数据缓存
+`cushy-storage` 的使用主要分为四个部分，`CushyOrmCache` `CushyDict` `BaseDict` `disk_cache`
+
+- [CushyORMCache](cushy-orm-cache.md#cushyormcache) 基于ORM框架的对象存储，可以十分方便的对对象级数据进行增删改查
+- [CushyDict](cushy-dict.md): `BaseDict`的增强版，存储各种类型的数据，包括基本数据类型与自定义数据类型
+- [BaseDict](base-dict.md): 存储基础的二进制数据
+- [disk_cache](disk-cache.md): 函数数据缓存
+
+# 鸣谢
+
+- 本项目ORM框架参考[SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy)
+  和[Django ORM](https://github.com/django/django)的源码，感谢这两个项目
+- 本项目基于[https://github.com/RimoChan/rimo_storage](https://github.com/RimoChan/rimo_storage)
+  进行二次开发改进，感谢[RimoChan](https://github.com/RimoChan)
 
 # 贡献
 
