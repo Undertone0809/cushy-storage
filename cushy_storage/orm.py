@@ -17,23 +17,37 @@
 # Project Link: https://github.com/Undertone0809/cushy-storage
 # Contact Email: zeeland@foxmail.com
 
+import json
 import uuid
+import hashlib
 from abc import ABC
 from typing import Union, Tuple, Callable, List, Optional
 
 from cushy_storage import CushyDict
 from cushy_storage.utils import get_default_cache_path
+from cushy_storage.logger import get_logger
+
+logger = get_logger()
 
 
 class BaseORMModel(ABC):
     def __init__(self):
         self.__name__ = type(self).__name__
-        self._unique_id = str(uuid.uuid4())
+        self.__unique_id__: str = str(uuid.uuid4())
+
+    def __get_element_hash__(self) -> str:
+        dic = self.__dict__.copy()
+        del dic["__unique_id__"]
+
+        json_data = json.dumps(dic, sort_keys=True).encode("utf-8")
+        hash256 = hashlib.sha256()
+        hash256.update(json_data)
+        return hash256.hexdigest()
 
 
 class QuerySet:
     def __init__(
-            self, obj: Union[List[BaseORMModel], BaseORMModel], name: Optional[str] = None
+        self, obj: Union[List[BaseORMModel], BaseORMModel], name: Optional[str] = None
     ):
         self._data: List[BaseORMModel] = obj
         if isinstance(obj, BaseORMModel):
@@ -44,11 +58,13 @@ class QuerySet:
             self.__name__ = name if name else self._data[0].__name__
 
     @classmethod
-    def _from_filter(cls, obj: Union[List[BaseORMModel], BaseORMModel], name: Optional[str] = None):
+    def _from_filter(
+        cls, obj: Union[List[BaseORMModel], BaseORMModel], name: Optional[str] = None
+    ) -> "QuerySet":
         """generate a new queryset from filter"""
         return cls(obj, name)
 
-    def filter(self, **kwargs):
+    def filter(self, **kwargs) -> "QuerySet":
         """
         filter by specified parameter
         Args:
@@ -91,6 +107,24 @@ class QuerySet:
         for item in self._data:
             print(f"[cushy-storage orm] {item.__dict__}")
 
+    @classmethod
+    def _from_remove_duplicates(
+        cls, obj: List[BaseORMModel], name: Optional[str] = None
+    ) -> "QuerySet":
+        return cls(obj, name)
+
+    def remove_duplicates(self) -> Optional["QuerySet"]:
+        if len(self._data) == 0:
+            return None
+
+        result_element_hash = []
+        result: List[BaseORMModel] = []
+        for obj in self._data:
+            if obj.__get_element_hash__() not in result_element_hash:
+                result_element_hash.append(obj.__get_element_hash__())
+                result.append(obj)
+        return self._from_remove_duplicates(result, name=self.__name__)
+
 
 def _get_class_name(class_name_or_obj: Union[str, type(BaseORMModel)]) -> str:
     class_name: str = class_name_or_obj
@@ -101,7 +135,7 @@ def _get_class_name(class_name_or_obj: Union[str, type(BaseORMModel)]) -> str:
 
 class ORMMixin(ABC):
     def _get_original_data_from_cache(
-            self, class_name_or_obj: Union[str, type(BaseORMModel)]
+        self, class_name_or_obj: Union[str, type(BaseORMModel)]
     ) -> List[BaseORMModel]:
         class_name = _get_class_name(class_name_or_obj)
         if class_name not in self:
@@ -114,6 +148,13 @@ class ORMMixin(ABC):
         if len(original_result) == 0:
             return QuerySet(original_result, name=_get_class_name(class_name_or_obj))
         return QuerySet(original_result)
+
+    def remove_duplicates(self, class_name_or_obj: Union[type(BaseORMModel), str]):
+        original_result = self._get_original_data_from_cache(class_name_or_obj)
+        if len(original_result) != 0:
+            queryset = QuerySet(original_result)
+            queryset = queryset.remove_duplicates()
+            self.set(queryset)
 
     def add(self, obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]) -> QuerySet:
         obj_name = obj.__name__ if not isinstance(obj, list) else obj[0].__name__
@@ -129,19 +170,33 @@ class ORMMixin(ABC):
         self[obj_name] = original_result
         return QuerySet(self[obj_name])
 
-    def delete(self, obj: BaseORMModel):
-        """delete obj by obj._unique_id"""
+    def delete(self, obj: Union[List[BaseORMModel], BaseORMModel]):
+        """delete obj by obj.__unique_id__"""
         original_result: List[BaseORMModel] = self._get_original_data_from_cache(
             obj.__name__
         )
         copy_result: List[BaseORMModel] = original_result.copy()
 
-        for item in copy_result:
-            if item._unique_id == obj._unique_id:
-                copy_result.remove(item)
-                return self.__setitem__(obj.__name__, copy_result)
+        if isinstance(obj, BaseORMModel):
+            obj = [obj]
+        if len(obj) == 0:
+            return
 
-        raise ValueError(f"can not found object: {obj}")
+        for cache_obj_item in original_result:
+            for input_obj_item in obj:
+                if cache_obj_item.__unique_id__ == input_obj_item.__unique_id__:
+                    copy_result.remove(cache_obj_item)
+        return self.__setitem__(obj[0].__name__, copy_result)
+
+    def set(self, obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]):
+        if isinstance(obj, QuerySet):
+            obj = obj.all()
+        elif isinstance(obj, BaseORMModel):
+            obj = [obj]
+
+        if len(obj) == 0:
+            return
+        return self.__setitem__(obj[0].__name__, obj)
 
     def update_obj(self, obj: BaseORMModel):
         original_result: List[BaseORMModel] = self._get_original_data_from_cache(
@@ -150,7 +205,7 @@ class ORMMixin(ABC):
         copy_result: List[BaseORMModel] = original_result.copy()
 
         for i in range(len(copy_result)):
-            if copy_result[i]._unique_id == obj._unique_id:
+            if copy_result[i].__unique_id__ == obj.__unique_id__:
                 copy_result[i] = obj
                 return self.__setitem__(obj.__name__, copy_result)
 
@@ -165,8 +220,8 @@ class ORMMixin(ABC):
 
 class CushyOrmCache(CushyDict, ORMMixin):
     def __init__(
-            self,
-            path: str = get_default_cache_path(),
-            compress: Union[str, Tuple[Callable, Callable], None] = None,
+        self,
+        path: str = get_default_cache_path(),
+        compress: Union[str, Tuple[Callable, Callable], None] = None,
     ):
         super().__init__(path, compress, "pickle")
