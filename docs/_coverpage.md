@@ -1,10 +1,13 @@
 <!-- _coverpage.md -->
 
-# cushy-storage <small>1.2.0</small>
+# **cushy-storage**
 
 > 一个基于磁盘缓存的ORM框架
 
 <p align="center">
+    <a target="_blank" href=''>
+        <img src="https://img.shields.io/github/v/release/Undertone0809/cushy-storage" />
+    </a>    
     <a target="_blank" href="">
         <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?label=license" />
     </a>
@@ -15,7 +18,6 @@
         <img src="https://static.pepy.tech/personalized-badge/cushy-storage?period=month&units=international_system&left_color=grey&right_color=blue&left_text=Downloads/Week"/>
    </a>
 </p>
-
 
 - :airplane: 轻松管理数据，基于磁盘缓存的ORM框架
 - :moneybag: 节省开发成本，省去数据存储规范制订
