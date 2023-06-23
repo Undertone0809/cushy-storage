@@ -88,9 +88,12 @@ class QuerySet:
         """
         result: List[BaseORMModel] = []
         for item in self._data:
+            is_target = True
             for query_key in kwargs.keys():
                 if item.__dict__[query_key] != kwargs[query_key]:
+                    is_target = False
                     continue
+            if is_target:
                 result.append(item)
 
         return self._from_filter(result, self.__name__)

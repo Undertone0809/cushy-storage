@@ -61,6 +61,12 @@ class TestORM(unittest.TestCase):
         self.assertEqual(queried_user.name, "jack")
         self.assertEqual(queried_user.age, 18)
 
+        # fileter with multiple params
+        queried_users = queryset.filter(name="jack", age=18).all()
+        self.assertEqual(len(queried_users), 1)
+        self.assertEqual(queried_users[0].name, "jack")
+        self.assertEqual(queried_users[0].age, 18)
+
         # filter multiple result
         queried_users = queryset.filter(age=18).all()
         self.assertEqual(len(queried_users), 2)
