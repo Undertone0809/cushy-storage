@@ -6,6 +6,10 @@ Please update the latest version. The old version is shit.
 ```bash
 pip install -U cushy-storage
 ```
+## v1.2.2 2023-06-23
+#### fix
+1. 修复使用QuerySet filter多重条件查询时会产生多余查询的问题
+
 ## v1.2.1 2023-06-22
 #### fix
 1. 修复使用CushyORMCache delete方法的时候传入list参数报错的问题
