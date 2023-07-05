@@ -98,10 +98,10 @@ class QuerySet:
 
         return self._from_filter(result, self.__name__)
 
-    def all(self) -> Optional[List[BaseORMModel]]:
+    def all(self) -> Optional[List]:
         return self._data
 
-    def first(self) -> Optional[BaseORMModel]:
+    def first(self):
         if len(self._data) == 0:
             return None
         return self._data[0]
