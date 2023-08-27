@@ -11,7 +11,7 @@
 
 - Other
   - [CushyORMCache与CushyDict对比](compare.md)
-  - [QA](qa.md)
+  - [FAQ](faq.md)
   - [Update](update.md)
   - [Plan](plan.md)
   - [Contribution](contribution.md)

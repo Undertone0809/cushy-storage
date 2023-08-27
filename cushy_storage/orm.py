@@ -130,7 +130,7 @@ class QuerySet:
 
 
 def _get_class_name(class_name_or_obj: Union[str, type(BaseORMModel)]) -> str:
-    class_name: str = class_name_or_obj
+    class_name = class_name_or_obj
     if isinstance(class_name_or_obj, type(BaseORMModel)):
         class_name = class_name_or_obj.__name__
     return class_name

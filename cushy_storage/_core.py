@@ -63,7 +63,7 @@ _LOCKS = {hex(i)[2:].zfill(2): threading.Lock() for i in range(256)}
 
 
 def _method_convert_helper(
-        s: Union[str, Tuple[Callable, Callable], None], d: dict
+    s: Union[str, Tuple[Callable, Callable], None], d: dict
 ) -> Tuple[Callable, Callable]:
     """
     Helper function to get the compression or serialization functions based on input parameter
@@ -78,7 +78,7 @@ def _method_convert_helper(
 
 class BaseDict(MutableMapping[str, bytes]):
     def __init__(
-            self, path: str, compress: Union[str, Tuple[Callable, Callable], None] = None
+        self, path: str, compress: Union[str, Tuple[Callable, Callable], None] = None
     ):
         self.path = Path(path)
         if self.path.is_file():
@@ -159,10 +159,10 @@ class CushyDict(BaseDict):
     """
 
     def __init__(
-            self,
-            path: str = get_default_cache_path(),
-            compress: Union[str, Tuple[Callable, Callable], None] = None,
-            serialize: Union[str, Tuple[Callable, Callable], None] = "json",
+        self,
+        path: str = get_default_cache_path(),
+        compress: Union[str, Tuple[Callable, Callable], None] = None,
+        serialize: Union[str, Tuple[Callable, Callable], None] = "json",
     ):
         """
         Args:
@@ -184,10 +184,10 @@ class CushyDict(BaseDict):
 
     def __setitem__(self, k: str, v: Any):
         if (
-                isinstance(v, list)
-                and self.deserialize is json.loads
-                and len(v) > 0
-                and type(v[0]) not in BASE_TYPE
+            isinstance(v, list)
+            and self.deserialize is json.loads
+            and len(v) > 0
+            and type(v[0]) not in BASE_TYPE
         ):
             raise ValueError(
                 (
@@ -212,7 +212,7 @@ def disk_cache(path: str = None, compress: str = None, serialize: str = "json"):
         if path is None:
             # If no cache path is specified, create a default one based on the function name and serialization algorithm
             path = f"./_cushycache_{name}_{serialize}"
-        map = CushyDict(path, serialize=serialize, compress=compress)
+        _map = CushyDict(path, serialize=serialize, compress=compress)
 
         def cached_func(*args, **kwargs):
             # Serialize the function arguments and use their MD5 hash as the cache key
@@ -221,15 +221,15 @@ def disk_cache(path: str = None, compress: str = None, serialize: str = "json"):
             ext = "pkl" if serialize == "pickle" else "json"
             filename = f"{md5}.{ext}"
 
-            if filename in map:
+            if filename in _map:
                 # If the cached output exists, return it
-                input_data, output_data = map[filename]
+                input_data, output_data = _map[filename]
                 return output_data
             else:
                 # Otherwise, call the original function and cache its output
                 output_data = func(*args, **kwargs)
                 cache_data = [input_data, output_data]
-                map[filename] = cache_data
+                _map[filename] = cache_data
                 return output_data
 
         return cached_func
