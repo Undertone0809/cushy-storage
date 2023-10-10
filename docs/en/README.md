@@ -17,7 +17,7 @@
     </a>
 </p>
 
-[English](/README_en.md) [中文](/README.md)
+[English](/README.md) [中文](/README_zh.md)
 
 
 custom data. On the other hand, Cushy-storage allows you to save energy on developing a data storage standard. The dictionary-like operation can reduce development costs significantly. If you need to operate file data locally, you can easily store data locally using this framework.

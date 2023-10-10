@@ -2,63 +2,201 @@
     cushy-storage
 </h1>
 <p align="center">
-  <strong>一个基于磁盘缓存的ORM框架</strong>
+    <strong>A lightweight ORM framework that provides disk caching for Python objects</strong>
 </p>
 
 <p align="center">
     <a target="_blank" href="">
-        <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?label=license" />
+        <img src="https://img.shields.io/badge/License-Apache 2.0-blue.svg?label=license" />
     </a>
     <a target="_blank" href=''>
-        <img src="https://static.pepy.tech/personalized-badge/cushy-storage?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads/Total"/>
-   </a>
+        <img src="https://static.pepy.tech/personalized-badge/broadcast-service?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads/Total"/>
+    </a>
     <a target="_blank" href=''>
-        <img src="https://static.pepy.tech/personalized-badge/cushy-storage?period=month&units=international_system&left_color=grey&right_color=blue&left_text=Downloads/Week"/>
-   </a>
+        <img src="https://static.pepy.tech/personalized-badge/cushy-socket?period=month&units=international_system&left_color=grey&right_color=blue&left_text=Downloads/Week"/>
+    </a>
 </p>
 
-[English](/README_en.md) [中文](/README.md)
+[English](/README.md) [中文](/README_zh.md)
 
-# 简介
 
-cushy-storage是一个基于磁盘缓存的ORM框架，你可以使用轻松的将自定义的数据通过ORM进行增删改查；另一方面，cushy-storage让你无需花费精力在
-如何制订一套数据存储规范上，字典般的操作可以减少很多开发的成本。如果你有对本地文件数据操作的需求，使用本框架可以轻松的进行数据的本地存储。
+custom data. On the other hand, Cushy-storage allows you to save energy on developing a data storage standard. The dictionary-like operation can reduce development costs significantly. If you need to operate file data locally, you can easily store data locally using this framework.
 
-# 特性
+# Features
+- Supports ORM storage, basic data storage, custom data storage, compatible with all data types.
+- Supports object-level operation of ORM framework, can easily perform CRUD operations on object-level data.
+- When storing basic data, read and write like operating a dict, which is very convenient.
+- Can easily store data (basic data type, custom data type) locally on the disk.
+- Eliminates the work of directly operating files.
+- Provides multiple serialization operations.
+- Provides multiple data compression methods.
 
-- 支持ORM存储、基本数据存储、自定义数据存储，兼容所有数据类型
-- 支持ORM框架级对象操作，可以轻松地对对象级数据进行增删改查
-- 存储基本数据时像操作dict一样读写，十分方便
-- 可以方便地将数据(基本数据类型、自定义数据类型)进行本地磁盘存储
-- 免去了直接操作文件的工作
-- 提供多种序列化操作
-- 提供多种数据压缩方式
-
-# 快速开始
-
-- [官方文档 github-pages](https://undertone0809.github.io/cushy-storage/#/)
-- [官方文档 gitee-pages](https://zeeland.gitee.io/cushy-storage/#/)
-- [当前开发计划](https://undertone0809.github.io/cushy-storage/#/plan)
-- [参与贡献/开发者手册](https://undertone0809.github.io/cushy-storage/#/contribution)
-- [常见问题](https://undertone0809.github.io/cushy-storage/#/qa)
-- [pypi仓库](https://pypi.org/project/cushy-storage/)
-
-# 安装
+# Installation
 
 ```bash
 pip install cushy-storage --upgrade 
 ```
 
-# 快速上手
+# Quick start
+`Cushy-storage` mainly consists of four parts, `CushyOrmCache`, `CushyDict`, `BaseDict`, `disk_cache`.
 
-`cushy-storage` 的使用主要分为四个部分，`CushyOrmCache` `CushyDict` `BaseDict` `disk_cache`，更多详细信息，请阅读相关文档
+- `CushyOrmCache` is an object storage based on the ORM framework, which can easily perform CRUD operations on object-level data.
+- `CushyDict`: An enhanced version of `BaseDict`. It stores various types of data, including basic data types and custom data types.
+- `BaseDict`: Store basic binary data.
+- `disk_cache`: Function data cache.
 
-- [CushyORMCache](https://undertone0809.github.io/cushy-storage/#/cushy-orm-cache?id=cushyormcache)
-  基于ORM框架的对象存储，可以十分方便的对对象级数据进行增删改查
-- [CushyDict](https://undertone0809.github.io/cushy-storage/#/cushy-dict): `BaseDict`的增强版，存储各种类型的数据，包括基本数据类型与自定义数据类型
-- [BaseDict](https://undertone0809.github.io/cushy-storage/#/base-dict): 存储基础的二进制数据
-- [disk_cache](https://undertone0809.github.io/cushy-storage/#/disk-cache): 函数数据缓存
+## CushyOrmCache
 
-# 贡献
+CushyOrmCache is an object storage based on the ORM framework, which can easily perform CRUD operations on object-level data. Below, we will use some simple scenarios to introduce its usage.
 
-如果你想为这个项目做贡献，你可以提交pr或issue。我很高兴看到更多的人参与并优化它。
+Now we need to build a simple user system, and we directly save the user system data in a local file (the current object-level data only supports storing in a pickle-serialized form). We only need two fields for the user fields simple name and an age. Then we can build the following operations.
+
+```python
+from cushy_storage.orm import BaseORMModel, CushyOrmCache
+
+class User(BaseORMModel):
+
+    def __init__(self, name, age):
+        super().__init__()
+        self.name = name
+        self.age = age
+```
+
+In this example, we implemented a `User` class and inherited `BaseORMModel`. In Cushy-storage, if you want your class to perform ORM operations, you must inherit this class. Next, we need to initialize the `CushyOrmCache`.
+
+```python
+orm_cache = CushyOrmCache()
+```
+
+Next, you can directly perform CRUD operations on the `User`.
+
+```python
+"""add user"""
+user = User("jack", 18)
+orm_cache.add(user)
+user = User("jasmine", 18)
+orm_cache.add(user)
+# or you can pass a list
+orm_cache.add([User("Zeeland", 10), User("Zero", 20)])
+
+"""query all user"""
+users = orm_cache.query(User).all()
+orm_cache.query(User).print_all()
+
+"""query by filter"""
+# get all user, you will get a List[User] type data.
+# Actually, it will get two users named "jack" and "jasmine".
+orm_cache.query("User").filter(age=18).all()
+# get first in queryset, you will get a User type data
+orm_cache.query("User").filter(name="jack").first()
+# filter by multiple parameters
+orm_cache.query("User").filter(name="jack", age=18).first()
+
+"""update"""
+user = orm_cache.query("User").filter(name='jack').first()
+user.age = 18
+orm_cache.update_obj(user)
+
+"""delete"""
+user = orm_cache.query("User").filter(name="jack").first()
+orm_cache.delete(user)
+orm_cache.query(User).print_all()
+
+```
+
+The complete code is as follows:
+
+```python
+from cushy_storage.orm import BaseORMModel, CushyOrmCache
+
+
+class User(BaseORMModel):
+
+    def __init__(self, name, age):
+        super().__init__()
+        self.name = name
+        self.age = age
+
+
+orm_cache = CushyOrmCache()
+
+"""add user"""
+user = User("jack", 18)
+orm_cache.add(user)
+user = User("jasmine", 18)
+orm_cache.add(user)
+
+"""query all user"""
+users = orm_cache.query(User).all()
+orm_cache.query(User).print_all()
+
+"""query by filter"""
+# get all user, you will get a List[User] type data.
+# Actually, it will get two users named "jack" and "jasmine".
+orm_cache.query("User").filter(age=18).all()
+# get first in queryset, you will get a User type data
+orm_cache.query("User").filter(name="jack").first()
+# filter by multiple parameters
+orm_cache.query("User").filter(name="jack", age=18).first()
+
+"""update"""
+user = orm_cache.query("User").filter(name='jack').first()
+user.age = 18
+orm_cache.update_obj(user)
+
+"""delete"""
+user = orm_cache.query("User").filter(name="jack").first()
+orm_cache.delete(user)
+orm_cache.query(User).print_all()
+
+```
+
+## CushyDict
+
+The CushyDict class is the advanced implementation of CushyStorage and includes serialization and deserialization of values. It supports multiple serialization algorithms (including pickle and JSON) and compression algorithms (including zlib and lzma), allowing for data to be compressed and serialized to disk as needed.
+
+```python
+from cushy_storage import CushyDict
+
+cache = CushyDict('./cache')
+cache['key'] = {'value': 42}
+value = cache['key']
+
+```
+
+## disk_cache
+
+The disk_cache decorator caches the output of a function to disk, allowing for faster retrieval of data in subsequent runs of the program. By using this decorator, you can improve your program's performance without changing its code.
+
+```python
+from cushy_storage import disk_cache
+
+@disk_cache('./cache')
+def my_func():
+    return {'value': 42}
+
+result = my_func()
+
+```
+
+
+# Todo
+
+- [x] Support more compression and serialization algorithms to meet the needs of different types of data
+- [x] Provide a more user-friendly error handling mechanism to make it easier for users to discover and solve problems
+- [ ] Improve cache management strategies to ensure the reliability and consistency of cached data
+- [ ] Provide more comprehensive test cases and regularly perform performance testing and upgrades
+- [ ] Support distributed caching, which can share cached data on multiple machines
+- [ ] Add cache expiration function, which can automatically delete cached data that has not been used for a long time
+- [ ] Improve documentation structure and code comments for easy understanding and use of the library
+- [ ] Support asynchronous IO in Python3 to improve program concurrency and performance
+- [ ] Add memory-based caching components to flexibly choose caching storage methods
+- [x] Provide ORM framework to operate object
+
+# Acknowledgement
+
+This project is based on [https://github.com/RimoChan/rimo_storage](https://github.com/RimoChan/rimo_storage) for secondary development and improvement. Thanks to [RimoChan](https://github.com/RimoChan) for his great work.
+
+# Contribution
+
+If you would like to contribute to this project, please submit a PR or issue. I am happy to see more people participate and optimize it.
