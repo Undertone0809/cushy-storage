@@ -24,4 +24,4 @@
 - :open_file_folder: 本地文件操作轻松搞定，方便数据本地存储
 
 [GitHub](https://github.com/Undertone0809/cushy-storage)
-[Getting Started](/README.md)
+[Getting Started](/README_zh.md)
