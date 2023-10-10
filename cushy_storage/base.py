@@ -37,10 +37,6 @@ class EnhancedList(list):
         super().insert(__index, __object)
         return self
 
-    def pop(self, __index=...) -> List:
-        super().pop(__index)
-        return self
-
     def reverse(self) -> List:
         super().reverse()
         return self
