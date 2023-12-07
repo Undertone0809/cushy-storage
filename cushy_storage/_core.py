@@ -29,6 +29,7 @@ from typing import Any, Callable, List, MutableMapping, Tuple, Union
 
 from cushy_storage.base import BASE_TYPE, EnhancedList
 from cushy_storage.utils import get_default_cache_path
+from cushy_storage.utils.logger import logger
 
 __all__ = ["BaseDict", "CushyDict", "disk_cache"]
 
@@ -87,6 +88,10 @@ class BaseDict(MutableMapping[str, bytes]):
         self.path.mkdir(parents=True, exist_ok=True)
         self.dirs = set()
         self.compress, self.decompress = _method_convert_helper(compress, _COMPRESS)
+
+        logger.info(
+            f"[cushy-storage] Initialized cache, path: {path}, compress: {compress}"
+        )
 
     def __contains__(self, k: str):
         """
@@ -182,6 +187,7 @@ class CushyDict(BaseDict):
         )
 
     def __getitem__(self, k: str) -> Any:
+        logger.info(f"[CushyDict] Try to get item, key: {k}, path: {self.path}")
         ret = self.deserialize(super().__getitem__(k))
 
         if isinstance(ret, list):
@@ -189,6 +195,7 @@ class CushyDict(BaseDict):
         return ret
 
     def __setitem__(self, k: str, v: Any):
+        logger.info(f"[CushyDict] Try to set item, key: {k}, path: {self.path}")
         if (
             isinstance(v, list)
             and self.deserialize is json.loads
