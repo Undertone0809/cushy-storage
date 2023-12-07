@@ -1,10 +1,9 @@
-from cushy_storage import CushyOrmCache, BaseORMModel
+from cushy_storage import BaseORMModel, CushyOrmCache
 
 orm_cache = CushyOrmCache()
 
 
 class User(BaseORMModel):
-
     def __init__(self, name, age):
         super().__init__()
         self.name = name
@@ -16,7 +15,7 @@ def init_data():
         orm_cache.add(User("jack", 18))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     init_data()
     orm_cache.remove_duplicates(User)
     users = orm_cache.query(User).all()

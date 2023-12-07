@@ -17,17 +17,17 @@
 # Project Link: https://github.com/Undertone0809/cushy-storage
 # Contact Email: zeeland@foxmail.com
 
-import os
-import zlib
-import lzma
-import json
-import pickle
 import hashlib
+import json
+import lzma
+import os
+import pickle
 import threading
+import zlib
 from pathlib import Path
-from typing import MutableMapping, Callable, Tuple, Union, Any, List
+from typing import Any, Callable, List, MutableMapping, Tuple, Union
 
-from cushy_storage.base import EnhancedList, BASE_TYPE
+from cushy_storage.base import BASE_TYPE, EnhancedList
 from cushy_storage.utils import get_default_cache_path
 
 __all__ = ["BaseDict", "CushyDict", "disk_cache"]
@@ -65,9 +65,8 @@ _LOCKS = {hex(i)[2:].zfill(2): threading.Lock() for i in range(256)}
 def _method_convert_helper(
     s: Union[str, Tuple[Callable, Callable], None], d: dict
 ) -> Tuple[Callable, Callable]:
-    """
-    Helper function to get the compression or serialization functions based on input parameter
-    """
+    """Helper function to get the compression or serialization functions based on input
+    parameter."""
     if s is None:
         return lambda x: x, lambda x: x
     elif isinstance(s, str):
@@ -155,7 +154,20 @@ class BaseDict(MutableMapping[str, bytes]):
 
 class CushyDict(BaseDict):
     """
-    A subclass of BaseDict that can serialize and deserialize values using different algorithms
+    CushyDict is a subclass of BaseDict that adds serialization and deserialization
+    functionality. It uses the same compression and decompression methods as BaseDict,
+    but also serializes and deserializes the data before storing and after retrieving
+    it from the cache.
+
+    Args:
+        path (str): The path where the cache files will be stored. Defaults to the
+            default cache path.
+        compress (Union[str, Tuple[Callable, Callable], None]): The compression method
+            to use. Can be a string ("zlib" or "lzma"), a tuple of two functions
+            (compress, decompress), or None. Defaults to None.
+        serialize (Union[str, Tuple[Callable, Callable], None]): The serialization
+            method to use. Can be a string ("pickle" or "json"), a tuple of two
+            functions (serialize, deserialize), or None. Defaults to "json".
     """
 
     def __init__(
@@ -164,12 +176,6 @@ class CushyDict(BaseDict):
         compress: Union[str, Tuple[Callable, Callable], None] = None,
         serialize: Union[str, Tuple[Callable, Callable], None] = "json",
     ):
-        """
-        Args:
-            path: the path to save
-            compress: zlib or lzma
-            serialize: json or pickle
-        """
         super().__init__(path, compress)
         self.serialize, self.deserialize = _method_convert_helper(
             serialize, _SERIALIZATION
@@ -191,8 +197,9 @@ class CushyDict(BaseDict):
         ):
             raise ValueError(
                 (
-                    f"Can not use 'json' to serialize your '{type(v[0])}' data in '{k}'. If you want to store "
-                    "complex data or custom data, please use 'pickle' to serialize."
+                    f"Can not use 'json' to serialize your '{type(v[0])}' data in "
+                    f"'{k}'.If you want to store complex data or custom data, please "
+                    f"use 'pickle' to serialize."
                 )
             )
         return super().__setitem__(k, self.serialize(v))
@@ -210,7 +217,8 @@ def disk_cache(path: str = None, compress: str = None, serialize: str = "json"):
         nonlocal path
         name = func.__name__
         if path is None:
-            # If no cache path is specified, create a default one based on the function name and serialization algorithm
+            # If no cache path is specified, create a default one based on the
+            # function name and serialization algorithm.
             path = f"./_cushycache_{name}_{serialize}"
         _map = CushyDict(path, serialize=serialize, compress=compress)
 

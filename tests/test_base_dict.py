@@ -18,6 +18,7 @@
 # Contact Email: zeeland@foxmail.com
 
 import unittest
+
 from cushy_storage import BaseDict
 
 

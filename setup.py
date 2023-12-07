@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import setuptools
 import pathlib
+
+import setuptools
 
 here = pathlib.Path(__file__).parent.resolve()
 long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setuptools.setup(
     name="cushy-storage",
-    version="1.2.5",
+    version="1.3.0",
     author="Zeeland",
     author_email="zeeland@foxmail.com",
     description="A data local persistence ORM framework",
@@ -33,13 +34,15 @@ setuptools.setup(
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3 :: Only",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+    ],
+    install_requires=[
+        "loguru~=0.7.2",
     ],
     keywords="storage, ORM, serialization, json, cushy-storage, cushy_storage",
 )

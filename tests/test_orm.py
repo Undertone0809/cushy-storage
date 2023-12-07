@@ -20,9 +20,9 @@
 import unittest
 from typing import List
 
+from cushy_storage import BaseORMModel, CushyOrmCache
 from cushy_storage.orm import QuerySet
-from cushy_storage import CushyOrmCache, BaseORMModel
-from cushy_storage.logger import enable_log
+from cushy_storage.utils.logger import enable_log
 from tests.utils import delete_cache
 
 cache_file = {
@@ -153,7 +153,7 @@ class TestORM(unittest.TestCase):
         orm_cache = CushyOrmCache(cache_file["test_orm_remove_duplicates"])
         users = []
         for i in range(10):
-            users.append(User(name=f"user1", age=1))
+            users.append(User(name="user1", age=1))
         users.append(User(name="last user", age=18))
         orm_cache.add(users)
         self.assertEqual(len(orm_cache.query(User).all()), 11)

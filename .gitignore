@@ -1,6 +1,9 @@
 output_gpt.md
 tests/cache
 tests/log
+.ruff_cache
+.coverage
+htmlcov
 
 command
 /example/data

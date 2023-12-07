@@ -17,17 +17,14 @@
 # Project Link: https://github.com/Undertone0809/cushy-storage
 # Contact Email: zeeland@foxmail.com
 
+import hashlib
 import json
 import uuid
-import hashlib
 from abc import ABC
-from typing import Union, Tuple, Callable, List, Optional
+from typing import Callable, List, Optional, Tuple, Union
 
 from cushy_storage import CushyDict
 from cushy_storage.utils import get_default_cache_path
-from cushy_storage.logger import get_logger
-
-logger = get_logger()
 
 
 class BaseORMModel(ABC):

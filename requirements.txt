@@ -1,0 +1,5 @@
+--index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+colorama==0.4.6 ; python_version >= "3.8" and python_version < "4.0" and sys_platform == "win32"
+loguru==0.7.2 ; python_version >= "3.8" and python_version < "4.0"
+win32-setctime==1.1.0 ; python_version >= "3.8" and python_version < "4.0" and sys_platform == "win32"
