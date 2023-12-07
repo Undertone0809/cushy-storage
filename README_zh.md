@@ -37,7 +37,6 @@ cushy-storage是一个基于磁盘缓存的ORM框架，你可以使用轻松的�
 # 快速开始
 
 - [官方文档 github-pages](https://undertone0809.github.io/cushy-storage/#/)
-- [官方文档 gitee-pages](https://zeeland.gitee.io/cushy-storage/#/)
 - [当前开发计划](https://undertone0809.github.io/cushy-storage/#/plan)
 - [参与贡献/开发者手册](https://undertone0809.github.io/cushy-storage/#/contribution)
 - [常见问题](https://undertone0809.github.io/cushy-storage/#/qa)
@@ -46,7 +45,7 @@ cushy-storage是一个基于磁盘缓存的ORM框架，你可以使用轻松的�
 # 安装
 
 ```bash
-pip install cushy-storage --upgrade 
+pip install cushy-storage -U
 ```
 
 # 快速上手
