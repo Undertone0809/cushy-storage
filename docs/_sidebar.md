@@ -12,6 +12,6 @@
 - Other
   - [CushyORMCache与CushyDict对比](compare.md)
   - [FAQ](faq.md)
-  - [Update](update.md)
-  - [Plan](plan.md)
-  - [Contribution](contribution.md)
+  - [Update](update.md#update)
+  - [Plan](plan.md#plan)
+  - [Contribution](contribution.md#how-to-contribute)

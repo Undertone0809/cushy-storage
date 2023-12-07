@@ -19,7 +19,8 @@
 
 import time
 import unittest
-from cushy_storage import CushyDict, disk_cache
+
+from cushy_storage import disk_cache
 
 
 class TestDiskCache(unittest.TestCase):
@@ -40,7 +41,8 @@ class TestDiskCache(unittest.TestCase):
             time.sleep(0.1)
             return {"result": x}
 
-        # Test caching the output of a function that returns a dictionary using pickle serialization
+        # Test caching the output of a function that returns a dictionary
+        # using pickle serialization
         self.assertEqual(slow_function(5), {"result": 5})
         self.assertEqual(slow_function(5), {"result": 5})  # Should use cache this time
         self.assertEqual(slow_function(10), {"result": 10})
@@ -51,7 +53,8 @@ class TestDiskCache(unittest.TestCase):
             time.sleep(0.1)
             return "a" * (1024 * 1024)
 
-        # Test caching the output of a function that returns a large string using LZMA compression
+        # Test caching the output of a function that returns a large string
+        # using LZMA compression
         self.assertEqual(slow_function(5), "a" * (1024 * 1024))
         self.assertEqual(
             slow_function(5), "a" * (1024 * 1024)
