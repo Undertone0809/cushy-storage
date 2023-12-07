@@ -25,6 +25,7 @@ from typing import Callable, List, Optional, Tuple, Union
 
 from cushy_storage import CushyDict
 from cushy_storage.utils import get_default_cache_path
+from cushy_storage.utils.logger import logger
 
 
 class BaseORMModel(ABC):
@@ -151,12 +152,14 @@ class ORMMixin(ABC):
 
     def query(self, class_name_or_obj: Union[str, type(BaseORMModel)]) -> QuerySet:
         """query all objects by class name"""
+        logger.info(f"[orm] query all objects, class name {class_name_or_obj}")
         original_result = self._get_original_data_from_cache(class_name_or_obj)
         if len(original_result) == 0:
             return QuerySet(original_result, name=_get_class_name(class_name_or_obj))
         return QuerySet(original_result)
 
     def remove_duplicates(self, class_name_or_obj: Union[type(BaseORMModel), str]):
+        logger.info(f"[orm] remove duplicates, class name {class_name_or_obj}")
         original_result = self._get_original_data_from_cache(class_name_or_obj)
         if len(original_result) != 0:
             queryset = QuerySet(original_result)
@@ -164,6 +167,7 @@ class ORMMixin(ABC):
             self.set(queryset)
 
     def add(self, obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]) -> QuerySet:
+        logger.info(f"[orm] add object, object {obj}")
         obj_name = _get_obj_name(obj)
         original_result: List[BaseORMModel] = self._get_original_data_from_cache(
             obj_name
@@ -181,6 +185,7 @@ class ORMMixin(ABC):
 
     def delete(self, obj: Union[List[BaseORMModel], QuerySet, BaseORMModel]):
         """delete obj by obj.__unique_id__"""
+        logger.info(f"[orm] delete object, object {obj}")
         obj_name = _get_obj_name(obj)
         original_result: List[BaseORMModel] = self._get_original_data_from_cache(
             obj_name
@@ -201,6 +206,7 @@ class ORMMixin(ABC):
         return self.__setitem__(obj_name, copy_result)
 
     def set(self, obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]):
+        logger.info(f"[orm] set object, object {obj}")
         obj_name = _get_obj_name(obj)
         if isinstance(obj, BaseORMModel):
             obj = [obj]
@@ -211,6 +217,7 @@ class ORMMixin(ABC):
         return self.__setitem__(obj_name, obj)
 
     def update_obj(self, obj: BaseORMModel):
+        logger.info(f"[orm] update object, object {obj}")
         original_result: List[BaseORMModel] = self._get_original_data_from_cache(
             obj.__name__
         )
