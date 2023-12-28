@@ -8,7 +8,7 @@ description = "A data local persistence ORM framework."
 name = "cushy-storage"
 readme = "README.md"
 repository = "https://github.com/Undertone0809/cushy-storage"
-version = "1.3.0"
+version = "1.3.2"
 keywords = [
     "storage",
     "ORM",
