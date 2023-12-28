@@ -21,7 +21,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setuptools.setup(
     name="cushy-storage",
-    version="1.3.0",
+    version="1.3.1",
     author="Zeeland",
     author_email="zeeland@foxmail.com",
     description="A data local persistence ORM framework",
