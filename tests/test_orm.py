@@ -22,7 +22,6 @@ from typing import List
 
 from cushy_storage import BaseORMModel, CushyOrmCache
 from cushy_storage.orm import QuerySet
-from cushy_storage.utils.logger import enable_log
 from tests.utils import delete_cache
 
 cache_file = {
@@ -32,7 +31,6 @@ cache_file = {
     "test_orm_set": "./cache/test-cushy-orm-cache-orm-set",
     "test_orm_remove_duplicates": "./cache/test-cushy-orm-cache-orm-remove-duplicates",
 }
-enable_log()
 
 
 class User(BaseORMModel):

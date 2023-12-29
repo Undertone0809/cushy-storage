@@ -36,19 +36,6 @@ def get_log_path() -> str:
     return f"{log_directory}/{current_time}.log"
 
 
-def enable_log():
-    """
-    Enables the logging system to see log information.
-
-    This function configures the logging system to write logs to a file and stderr.
-    The log file is located at the path returned by the get_log_path function, and the
-    log level for the file is set to DEBUG. The log level for stderr is also set to
-    DEBUG.
-    """
-    log_manager.logger._core.handlers[log_manager.file_logger_id].level = "DEBUG"
-    log_manager.logger._core.handlers[log_manager.sys_logger_id].level = "DEBUG"
-
-
 class LogManager(metaclass=Singleton):
     """
     Logger class that uses the Singleton design pattern.
@@ -70,18 +57,12 @@ class LogManager(metaclass=Singleton):
             get_log_path(), level="DEBUG", rotation="1 day"
         )
 
-        # if exist stderr handler, do not add again
-        self.sys_logger_id = next(
-            (
-                handler_id
-                for handler_id, handler in self.logger._core.handlers.items()
-                if handler._name == "<stderr>"
-            ),
-            None,
-        )
+        for handler_id, handler in self.logger._core.handlers.items():
+            if handler._name == "<stderr>":
+                del self.logger._core.handlers[handler_id]
+                break
 
-        if self.sys_logger_id is None:
-            self.sys_logger_id = self.logger.add(sys.stderr, level="WARNING")
+        self.sys_logger_id = self.logger.add(sys.stderr, level="WARNING")
 
 
 def exception_handler(exc_type, exc_value, exc_traceback):
