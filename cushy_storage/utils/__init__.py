@@ -40,15 +40,22 @@ def convert_backslashes(path: str):
 
 
 def get_default_storage_path(module_name: str = "") -> str:
-    pne_storage_path = os.path.expanduser("~/.cushy-storage")
+    # Define the base storage path
+    storage_path = os.path.expanduser("~/.cushy-storage")
 
-    if not os.path.exists(pne_storage_path):
-        try:
-            os.makedirs(pne_storage_path)
-        except PermissionError:
-            pne_storage_path = f"{tempfile.gettempdir()}/cushy-storage"
+    # Append the module name to the storage path if provided
+    if module_name:
+        storage_path = os.path.join(storage_path, module_name)
 
-    return convert_backslashes(f"{pne_storage_path}/{module_name}")
+    # Try to create the storage path (with module subdirectory if specified)
+    # Use a temporary directory instead if permission is denied,
+    try:
+        os.makedirs(storage_path, exist_ok=True)
+    except PermissionError:
+        storage_path = os.path.join(tempfile.gettempdir(), "cushy-storage", module_name)
+        os.makedirs(storage_path, exist_ok=True)
+
+    return convert_backslashes(storage_path)
 
 
 def get_default_cache_path() -> str:

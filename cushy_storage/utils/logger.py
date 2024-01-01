@@ -29,8 +29,7 @@ from cushy_storage.utils.singleton import Singleton
 
 def get_log_path() -> str:
     log_directory = get_default_storage_path("logs")
-    current_time = datetime.datetime.now().strftime("%Y%m%d")
-    return f"{log_directory}/{current_time}.log"
+    return f"{log_directory}/runtime.log"
 
 
 class LogManager(metaclass=Singleton):
@@ -46,8 +45,7 @@ class LogManager(metaclass=Singleton):
         file_handler.setLevel(logging.DEBUG)
 
         formatter = logging.Formatter(
-            "%(asctime)s | %(levelname)s | %(name)s:%(funcName)s:%(lineno)d - %(message)s",
-            # noqa
+            "%(asctime)s | %(levelname)s | %(name)s:%(funcName)s:%(lineno)d - %(message)s",  # noqa
             "%Y-%m-%d %H:%M:%S",
         )
 
