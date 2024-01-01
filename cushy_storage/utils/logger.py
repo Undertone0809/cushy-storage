@@ -29,7 +29,8 @@ from cushy_storage.utils.singleton import Singleton
 
 def get_log_path() -> str:
     log_directory = get_default_storage_path("logs")
-    return f"{log_directory}/runtime.log"
+    current_time = datetime.datetime.now().strftime("%Y%m%d")
+    return f"{log_directory}/{current_time}.log"
 
 
 class LogManager(metaclass=Singleton):
