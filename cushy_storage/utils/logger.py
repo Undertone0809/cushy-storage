@@ -18,10 +18,10 @@
 # Contact Email: zeeland@foxmail.com
 
 import datetime
+import logging
 import sys
 import traceback
-
-from loguru import logger as _logger
+from logging.handlers import TimedRotatingFileHandler
 
 from cushy_storage.utils import get_default_storage_path
 from cushy_storage.utils.singleton import Singleton
@@ -33,44 +33,27 @@ def get_log_path() -> str:
     return f"{log_directory}/{current_time}.log"
 
 
-def _log_filter(record):
-    """Filter function for the logging system.
-
-    Args:
-        record: A log record, which is a dictionary that the logging systemq
-
-    Returns:
-        bool: True if the record should be allowed through the filter, False otherwise.
-    """
-    return record["name"].startwith("cushy-storage")
-
-
 class LogManager(metaclass=Singleton):
-    """Logger class that uses the Singleton design pattern.
-
-    This class is responsible for managing the application's logging system. It uses
-    the loguru library for logging. The logger is configured to write logs to a file
-    and stderr. The log file is located at the path returned by the get_log_path
-    function, and the log level for the file is set to DEBUG. The log level for
-    stderr is set to WARNING.
-
-    Attributes:
-        logger: An instance of the loguru logger.
-    """
-
     def __init__(self) -> None:
-        self.logger = _logger.bind(name="cushy-storage")
+        self.logger = logging.getLogger("cushy_storage")
+        self.logger.setLevel(logging.DEBUG)
 
-        self.file_logger_id = self.logger.add(
-            get_log_path(), level="DEBUG", rotation="1 day", filter=_log_filter
+        file_handler = TimedRotatingFileHandler(
+            filename=get_log_path(),
+            when="midnight",
+            interval=1,
+        )
+        file_handler.setLevel(logging.DEBUG)
+
+        formatter = logging.Formatter(
+            "%(asctime)s | %(levelname)s | %(name)s:%(funcName)s:%(lineno)d - %(message)s",
+            # noqa
+            "%Y-%m-%d %H:%M:%S",
         )
 
-        # for handler_id, handler in self.logger._core.handlers.items():
-        #     if handler._name == "<stderr>":
-        #         del self.logger._core.handlers[handler_id]
-        #         break
-        #
-        # self.sys_logger_id = self.logger.add(sys.stderr, level="WARNING")
+        file_handler.setFormatter(formatter)
+
+        self.logger.addHandler(file_handler)
 
 
 def exception_handler(exc_type, exc_value, exc_traceback):
