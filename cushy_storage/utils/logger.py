@@ -42,6 +42,7 @@ class LogManager(metaclass=Singleton):
             filename=get_log_path(),
             when="midnight",
             interval=1,
+            encoding="utf-8",
         )
         file_handler.setLevel(logging.DEBUG)
 
