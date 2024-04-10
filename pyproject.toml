@@ -20,7 +20,6 @@ keywords = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-loguru = "^0.7.2"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^6.1.2"
