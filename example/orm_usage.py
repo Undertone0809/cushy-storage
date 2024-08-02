@@ -17,10 +17,11 @@
 # Project Link: https://github.com/Undertone0809/cushy-storage
 # Contact Email: zeeland@foxmail.com
 
-from cushy_storage.orm import BaseORMModel, CushyOrmCache
+from pydantic import BaseModel
+from cushy_storage.orm import CushyOrmCache
 
 
-class User(BaseORMModel):
+class User(BaseModel):
     def __init__(self, name, age):
         super().__init__()
         self.name = name
