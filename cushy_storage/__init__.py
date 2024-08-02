@@ -19,6 +19,6 @@
 
 
 from cushy_storage._core import BaseDict, CushyDict, disk_cache
-from cushy_storage.orm import BaseORMModel, CushyOrmCache
+from cushy_storage.orm import CushyOrmCache
 
-__all__ = ["disk_cache", "CushyDict", "BaseDict", "BaseORMModel", "CushyOrmCache"]
+__all__ = ["disk_cache", "CushyDict", "BaseDict", "CushyOrmCache"]

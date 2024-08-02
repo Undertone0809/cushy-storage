@@ -20,7 +20,8 @@
 import unittest
 from typing import List
 
-from cushy_storage import BaseORMModel, CushyOrmCache
+from pydantic import BaseModel
+from cushy_storage import CushyOrmCache
 from cushy_storage.orm import QuerySet
 from tests.utils import delete_cache
 
@@ -33,7 +34,7 @@ cache_file = {
 }
 
 
-class User(BaseORMModel):
+class User(BaseModel):
     def __init__(self, name, age):
         super().__init__()
         self.name = name
