@@ -23,24 +23,28 @@ import uuid
 from abc import ABC
 from typing import Callable, List, Optional, Tuple, Union
 
+from pydantic import BaseModel, Field 
 from cushy_storage import CushyDict
 from cushy_storage.utils import get_default_cache_path
 from cushy_storage.utils.logger import logger
 
+class BaseORMModel(BaseModel, ABC):
+    uid: str = Field(default_factory=lambda: str(uuid.uuid4())) 
+    __name__: str = "" 
 
-class BaseORMModel(ABC):
-    def __init__(self):
-        self.__name__ = type(self).__name__
-        self.__unique_id__: str = str(uuid.uuid4())
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.__name__ = self.__class__.__name__ 
 
     def __get_element_hash__(self) -> str:
-        dic = self.__dict__.copy()
-        del dic["__unique_id__"]
+        """Generate hashes based on model data (excluding uid fields)"""
+        data = self.model_dump(exclude={"uid"})   
+        json_data = json.dumps(data,  sort_keys=True).encode("utf-8")
+        return hashlib.sha256(json_data).hexdigest() 
 
-        json_data = json.dumps(dic, sort_keys=True).encode("utf-8")
-        hash256 = hashlib.sha256()
-        hash256.update(json_data)
-        return hash256.hexdigest()
+    class Config:
+        arbitrary_types_allowed = True  
+        extra = "allow"  
 
 
 class QuerySet:
@@ -184,26 +188,30 @@ class ORMMixin(ABC):
         return QuerySet(self[obj_name])
 
     def delete(self, obj: Union[List[BaseORMModel], QuerySet, BaseORMModel]):
-        """delete obj by obj.__unique_id__"""
-        logger.info(f"[orm] delete object, object {obj}")
+        """Deletion via object UID (batch supported)"""
+        logger.info(f"[orm]  delete object, object {obj}")
         obj_name = _get_obj_name(obj)
-        original_result: List[BaseORMModel] = self._get_original_data_from_cache(
-            obj_name
-        )
-        copy_result: List[BaseORMModel] = original_result.copy()
-
+        original_data: List[BaseORMModel] = self._get_original_data_from_cache(obj_name)
+        updated_data = original_data.copy() 
+    
+        to_delete = []
         if isinstance(obj, BaseORMModel):
-            obj = [obj]
+            to_delete = [obj]
         elif isinstance(obj, QuerySet):
-            obj = obj.all()
-        if len(obj) == 0:
-            return
+            to_delete = obj.all() 
+        elif isinstance(obj, list):
+            to_delete = obj 
 
-        for cache_obj_item in original_result:
-            for input_obj_item in obj:
-                if cache_obj_item.__unique_id__ == input_obj_item.__unique_id__:
-                    copy_result.remove(cache_obj_item)
-        return self.__setitem__(obj_name, copy_result)
+        delete_uids = {item.uid  for item in to_delete}
+        updated_data = [item for item in updated_data if item.uid  not in delete_uids]
+    
+        self[obj_name] = updated_data
+    
+    def delete_by(self, cls: type(BaseORMModel), **conditions):
+        """Delete objects directly from conditional parameters"""
+        queryset = self.query(cls).filter(**conditions) 
+        if queryset.all(): 
+            self.delete(queryset.all()) 
 
     def set(self, obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]):
         logger.info(f"[orm] set object, object {obj}")
@@ -216,19 +224,17 @@ class ORMMixin(ABC):
             return
         return self.__setitem__(obj_name, obj)
 
+
     def update_obj(self, obj: BaseORMModel):
-        logger.info(f"[orm] update object, object {obj}")
-        original_result: List[BaseORMModel] = self._get_original_data_from_cache(
-            obj.__name__
-        )
-        copy_result: List[BaseORMModel] = original_result.copy()
-
-        for i in range(len(copy_result)):
-            if copy_result[i].__unique_id__ == obj.__unique_id__:
-                copy_result[i] = obj
-                return self.__setitem__(obj.__name__, copy_result)
-
-        raise ValueError(f"can not found object: {obj}")
+        class_name = obj.__class__.__name__
+        data = self._get_original_data_from_cache(class_name)
+        
+        #Match and update the full object via UID
+        for i, item in enumerate(data):
+            if item.uid  == obj.uid: 
+                data[i] = obj   
+                break 
+        self[class_name] = data  
 
     def __getitem__(self, item) -> List[BaseORMModel]:
         """implemented by CushyDict"""

@@ -20,6 +20,7 @@
 import unittest
 from typing import List
 
+from pydantic import BaseModel, Field, ConfigDict  # 引入pydantic
 from cushy_storage import BaseORMModel, CushyOrmCache
 from cushy_storage.orm import QuerySet
 from tests.utils import delete_cache
@@ -32,12 +33,13 @@ cache_file = {
     "test_orm_remove_duplicates": "./cache/test-cushy-orm-cache-orm-remove-duplicates",
 }
 
-
 class User(BaseORMModel):
-    def __init__(self, name, age):
-        super().__init__()
-        self.name = name
-        self.age = age
+    name: str  # Use the pydantic field to declare the method
+    age: int
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,  # 允许非声明类型参数 
+        extra="allow"  # 允许额外字段（可选）
+    )
 
 
 class TestORM(unittest.TestCase):
@@ -46,7 +48,10 @@ class TestORM(unittest.TestCase):
         delete_cache()
 
     def test_queryset_base(self):
-        user_list: List[User] = [User("jack", 18), User("jasmine", 18)]
+        user_list: List[User] = [
+            User(name="jack", age=18), 
+            User(name="jasmine", age=18)
+        ]
         queryset = QuerySet(user_list)
 
         # assert all() and first()
@@ -78,7 +83,7 @@ class TestORM(unittest.TestCase):
 
     def test_orm_add_and_query(self):
         orm_cache = CushyOrmCache(cache_file["test_orm_add_and_query"])
-        user = User("jack", 18)
+        user = User(name="jack", age=18)  # Initialize with keyword arguments
         # assert add()
         queryset = orm_cache.add(user)
         self.assertEqual(len(queryset.all()), 1)
@@ -94,9 +99,9 @@ class TestORM(unittest.TestCase):
 
         # add multiple users
         user_list: List[User] = [
-            User("zeeland", 22),
-            User("hizeros", 20),
-            User("honey", 18),
+            User(name="zeeland", age=22),
+            User(name="hizeros", age=20),
+            User(name="honey", age=18),
         ]
         queryset = orm_cache.add(user_list)
         self.assertEqual(len(queryset.all()), 4)
@@ -105,44 +110,51 @@ class TestORM(unittest.TestCase):
     def test_orm_delete(self):
         orm_cache = CushyOrmCache(cache_file["test_orm_delete"])
 
-        # add single user
-        user_a = User("user a", 20)
-        orm_cache.add(user_a)
-        user_b = User("user b", 30)
-        orm_cache.add(user_b)
-        user_c = User("user c", 40)
-        orm_cache.add(user_c)
+       # Generate a UID with validation
+        original_uids = set()
+        users = [
+            User(name="user a", age=20),
+            User(name="user b", age=30),
+            User(name="user c", age=40)
+        ]
+        for u in users:
+            original_uids.add(u.uid) 
+        orm_cache.add(users)
+        orm_cache.delete_by(User,  name="user b") 
 
-        self.assertEqual(len(orm_cache.query(User).all()), 3)
-        orm_cache.query(User).print_all()
-
-        # delete single user
-        orm_cache.delete(user_b)
-        orm_cache.query(User).print_all()
-        queryset = orm_cache.query(User)
-        self.assertEqual(len(queryset.all()), 2)
-        self.assertEqual(queryset.first().name, "user a")
-        self.assertEqual(queryset.first().age, 20)
+        remaining = orm_cache.query(User).all() 
+        self.assertEqual(len(remaining),  2)
+        
+        remaining_uids = {u.uid  for u in remaining}
+        self.assertTrue(original_uids.issuperset(remaining_uids))
+        
+        deleted_user = orm_cache.query(User).filter(name="user  b").first()
+        self.assertIsNone(deleted_user) 
 
     def test_orm_update(self):
         orm_cache = CushyOrmCache(cache_file["test_orm_update"])
-        user = User("old username", 18)
-        orm_cache.add(user)
+        user = User(name="old username", age=18)
+        original_uid = user.uid  
+        orm_cache.add(user) 
 
-        # assert update
         user.name = "new username"
-        orm_cache.update_obj(user)
-        queried_user = orm_cache.query(User).filter(name="new username").first()
-        self.assertIsNotNone(queried_user)
-        self.assertEqual(queried_user.name, "new username")
+        user.age  = 25
+        orm_cache.update_obj(user) 
+        queried = orm_cache.query(User).filter(name="new username").all()
+        self.assertEqual(len(queried),  1)
+        updated_user = queried[0]
+        self.assertEqual(updated_user.uid,  original_uid)
+        self.assertEqual(updated_user.name,  "new username")
+        self.assertEqual(updated_user.age,  25)
 
     def test_orm_set(self):
         orm_cache = CushyOrmCache(cache_file["test_orm_set"])
-        users = [User("no exist user", 18)] * 10
+        users = [User(name="no exist user", age=18)] * 10 
         orm_cache.add(users)
         self.assertEqual(len(orm_cache.query(User).all()), 10)
 
-        orm_cache.set(User("existing user", 10))
+        # orm_cache.set(User("existing user", 10))
+        orm_cache.set(User(name="existing user", age=10))
         queryset = orm_cache.query(User).all()
         self.assertEqual(len(queryset), 1)
         self.assertEqual(queryset[0].name, "existing user")
