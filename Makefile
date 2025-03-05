@@ -1,7 +1,10 @@
-#* Variables
+.PHONY: help lock install pre-commit-install polish-codestyle formatting format check-codestyle test lint lint-fix docker-build docker-remove
+
 SHELL := /usr/bin/env bash
 PYTHON := python
 OS := $(shell python -c "import sys; print(sys.platform)")
+IMAGE := cushy_storage
+VERSION := latest
 
 ifeq ($(OS),win32)
 	PYTHONPATH := $(shell python -c "import os; print(os.getcwd())")
@@ -12,50 +15,51 @@ else
 endif
 
 
-#* Docker variables
-IMAGE := cushy_storage
-VERSION := latest
+help:
+	@echo "Available commands:"
+	@echo "  help              Show this help message"
+	@echo "  lock              Update poetry.lock and requirements.txt"
+	@echo "  install           Install dependencies using poetry"
+	@echo "  pre-commit-install Install pre-commit hooks"
+	@echo "  format            Format code using ruff"
+	@echo "  test             Run tests with coverage"
+	@echo "  lint             Run linting checks"
+	@echo "  lint-fix         Fix linting issues"
+	@echo "  docker-build     Build docker image"
+	@echo "  docker-remove    Remove docker image"
 
-#* Installation
-.PHONY: install
-install:
+lock:
 	poetry lock -n && poetry export --without-hashes > requirements.txt
+
+install:
+	make lock
 	poetry install -n
 
-.PHONY: pre-commit-install
 pre-commit-install:
 	poetry run pre-commit install
 
-#* Formatters
-.PHONY: polish-codestyle
 polish-codestyle:
 	poetry run ruff format --config pyproject.toml .
 	poetry run ruff check --fix --config pyproject.toml .
 
-.PHONY: formatting
 formatting: polish-codestyle
+format: polish-codestyle
 
-#* Linting
-.PHONY: test
 test:
 	$(TEST_COMMAND)
 	poetry run coverage-badge -o assets/coverage.svg -f
 
-.PHONY: check-codestyle
 check-codestyle:
 	poetry run ruff format --check --config pyproject.toml .
 	poetry run ruff check --config pyproject.toml .
 
-.PHONY: lint
 lint: test check-codestyle
 
-.PHONY: lint-fix
 lint-fix: polish-codestyle
 
 #* Docker
 # Example: make docker-build VERSION=latest
 # Example: make docker-build IMAGE=some_name VERSION=0.1.0
-.PHONY: docker-build
 docker-build:
 	@echo Building docker $(IMAGE):$(VERSION) ...
 	docker build \
@@ -64,35 +68,6 @@ docker-build:
 
 # Example: make docker-remove VERSION=latest
 # Example: make docker-remove IMAGE=some_name VERSION=0.1.0
-.PHONY: docker-remove
 docker-remove:
 	@echo Removing docker $(IMAGE):$(VERSION) ...
 	docker rmi -f $(IMAGE):$(VERSION)
-
-#* Cleaning
-.PHONY: pycache-remove
-pycache-remove:
-	find . | grep -E "(__pycache__|\.pyc|\.pyo$$)" | xargs rm -rf
-
-.PHONY: dsstore-remove
-dsstore-remove:
-	find . | grep -E ".DS_Store" | xargs rm -rf
-
-.PHONY: mypycache-remove
-mypycache-remove:
-	find . | grep -E ".mypy_cache" | xargs rm -rf
-
-.PHONY: ipynbcheckpoints-remove
-ipynbcheckpoints-remove:
-	find . | grep -E ".ipynb_checkpoints" | xargs rm -rf
-
-.PHONY: pytestcache-remove
-pytestcache-remove:
-	find . | grep -E ".pytest_cache" | xargs rm -rf
-
-.PHONY: build-remove
-build-remove:
-	rm -rf build/
-
-.PHONY: cleanup
-cleanup: pycache-remove dsstore-remove mypycache-remove ipynbcheckpoints-remove pytestcache-remove
