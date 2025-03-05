@@ -34,6 +34,7 @@ polish-codestyle:
 
 .PHONY: formatting
 formatting: polish-codestyle
+format: polish-codestyle
 
 #* Linting
 .PHONY: test

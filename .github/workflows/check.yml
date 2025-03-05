@@ -27,6 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         poetry config virtualenvs.in-project true
+        poetry config installer.modern-installation false
         poetry install
 
     - name: Run tests
