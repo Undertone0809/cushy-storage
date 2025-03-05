@@ -17,47 +17,36 @@
 # Project Link: https://github.com/Undertone0809/cushy-storage
 # Contact Email: zeeland@foxmail.com
 
+
 import hashlib
 import json
 import uuid
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Callable, List, Optional, Tuple, Union
 
+from pydantic import BaseModel, Field
 from cushy_storage import CushyDict
-from cushy_storage.utils import get_default_cache_path
-from cushy_storage.utils.logger import logger
-
-
-class BaseORMModel(ABC):
-    def __init__(self):
-        self.__name__ = type(self).__name__
-        self.__unique_id__: str = str(uuid.uuid4())
-
-    def __get_element_hash__(self) -> str:
-        dic = self.__dict__.copy()
-        del dic["__unique_id__"]
-
-        json_data = json.dumps(dic, sort_keys=True).encode("utf-8")
-        hash256 = hashlib.sha256()
-        hash256.update(json_data)
-        return hash256.hexdigest()
-
+from cushy_storage.utils  import get_default_cache_path
+from cushy_storage.utils.logger  import logger
 
 class QuerySet:
+    def __len__(self):
+        return len(self._data)
+    
     def __init__(
-        self, obj: Union[List[BaseORMModel], BaseORMModel], name: Optional[str] = None
+        self, obj: Union[List[BaseModel], BaseModel], name: Optional[str] = None
     ):
-        self._data: List[BaseORMModel] = obj
-        if isinstance(obj, BaseORMModel):
+        self._data: List[BaseModel] = obj
+        if isinstance(obj, BaseModel):
             self._data = [obj]
         if len(self._data) == 0 and name:
             self.__name__ = name
         else:
-            self.__name__ = name if name else self._data[0].__name__
+            self.__name__ = name if name else self._data[0].__class__.__name__
 
     @classmethod
     def _from_filter(
-        cls, obj: Union[List[BaseORMModel], BaseORMModel], name: Optional[str] = None
+        cls, obj: Union[List[BaseModel], BaseModel], name: Optional[str] = None
     ) -> "QuerySet":
         """generate a new queryset from filter"""
         return cls(obj, name)
@@ -74,26 +63,25 @@ class QuerySet:
             class User(BaseORMModel):
                 def __init__(self, name, age):
                     super().__init__()
-                    self.name = name
-                    self.age = age
+                    self.name  = name
+                    self.age  = age
             # get all user, you will get a List[User] type data.
             # Actually, it will get two users named "jack" and "jasmine".
-            orm_cache.query("User").filter(age=18).all()
+            orm_cache.query("User").filter(age=18).all() 
             # get first in queryset, you will get a User type data
-            orm_cache.query("User").filter(name="jack").first()
+            orm_cache.query("User").filter(name="jack").first() 
             # filter by multiple parameters
-            orm_cache.query("User").filter(name="jack", age=18).first()
+            orm_cache.query("User").filter(name="jack",  age=18).first()
         """
-        result: List[BaseORMModel] = []
+        result: List[BaseModel] = []
         for item in self._data:
             is_target = True
-            for query_key in kwargs.keys():
-                if item.__dict__[query_key] != kwargs[query_key]:
+            for query_key, query_value in kwargs.items():
+                if getattr(item, query_key, None) != query_value:
                     is_target = False
-                    continue
+                    break
             if is_target:
                 result.append(item)
-
         return self._from_filter(result, self.__name__)
 
     def all(self) -> Optional[List]:
@@ -110,7 +98,7 @@ class QuerySet:
 
     @classmethod
     def _from_remove_duplicates(
-        cls, obj: List[BaseORMModel], name: Optional[str] = None
+        cls, obj: List[BaseModel], name: Optional[str] = None
     ) -> "QuerySet":
         return cls(obj, name)
 
@@ -118,122 +106,138 @@ class QuerySet:
         if len(self._data) == 0:
             return None
 
-        result_element_hash = []
-        result: List[BaseORMModel] = []
+        seen_hashes = set()
+        unique_objects = []
+        
         for obj in self._data:
-            if obj.__get_element_hash__() not in result_element_hash:
-                result_element_hash.append(obj.__get_element_hash__())
-                result.append(obj)
-        return self._from_remove_duplicates(result, name=self.__name__)
+            
+            data = obj.model_dump(exclude={"uid"})
+            json_str = json.dumps(data, sort_keys=True)
+            obj_hash = hashlib.sha256(json_str.encode()).hexdigest()
+            
+            if obj_hash not in seen_hashes:
+                seen_hashes.add(obj_hash)
+                unique_objects.append(obj)
+        
+        return self._from_remove_duplicates(unique_objects, name=self.__name__)
 
 
-def _get_class_name(class_name_or_obj: Union[str, type(BaseORMModel)]) -> str:
+def _get_class_name(class_name_or_obj: Union[str, type(BaseModel)]) -> str:
     class_name = class_name_or_obj
-    if isinstance(class_name_or_obj, type(BaseORMModel)):
+    if isinstance(class_name_or_obj, type(BaseModel)):
         class_name = class_name_or_obj.__name__
     return class_name
 
 
-def _get_obj_name(obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]) -> str:
-    if isinstance(obj, BaseORMModel) or isinstance(obj, QuerySet):
+def _get_obj_name(obj: Union[BaseModel, QuerySet, List[BaseModel]]) -> str:
+    if isinstance(obj, BaseModel) or isinstance(obj, QuerySet):
         return obj.__name__
     elif isinstance(obj, List):
         return obj[0].__name__
 
 
 class ORMMixin(ABC):
-    def _get_original_data_from_cache(
-        self, class_name_or_obj: Union[str, type(BaseORMModel)]
-    ) -> List[BaseORMModel]:
+    def _get_original_data_from_cache(self, class_name_or_obj) -> List[BaseModel]:
         class_name = _get_class_name(class_name_or_obj)
         if class_name not in self:
             self.__setitem__(class_name, [])
         return self.__getitem__(class_name)
 
-    def query(self, class_name_or_obj: Union[str, type(BaseORMModel)]) -> QuerySet:
+    def query(self, class_name_or_obj: Union[str, type(BaseModel)]) -> QuerySet:
         """query all objects by class name"""
-        logger.info(f"[orm] query all objects, class name {class_name_or_obj}")
+        logger.info(f"[orm]  query all objects, class name {class_name_or_obj}")
         original_result = self._get_original_data_from_cache(class_name_or_obj)
         if len(original_result) == 0:
             return QuerySet(original_result, name=_get_class_name(class_name_or_obj))
         return QuerySet(original_result)
 
-    def remove_duplicates(self, class_name_or_obj: Union[type(BaseORMModel), str]):
-        logger.info(f"[orm] remove duplicates, class name {class_name_or_obj}")
-        original_result = self._get_original_data_from_cache(class_name_or_obj)
-        if len(original_result) != 0:
-            queryset = QuerySet(original_result)
-            queryset = queryset.remove_duplicates()
-            self.set(queryset)
+    def remove_duplicates(self) -> "QuerySet":
+        if not self._data:
+            return self
 
-    def add(self, obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]) -> QuerySet:
+        seen = set()
+        unique_objects = []
+        for obj in self._data:
+            data = obj.model_dump(exclude={"uid"})
+            json_str = json.dumps(data, sort_keys=True)
+            obj_hash = hashlib.sha256(json_str.encode()).hexdigest()
+
+            if obj_hash not in seen:
+                seen.add(obj_hash)
+                unique_objects.append(obj)
+
+        return self.__class__(unique_objects, self.__name__)
+
+    def add(self, obj: Union[BaseModel, QuerySet, List[BaseModel]]) -> QuerySet:
         logger.info(f"[orm] add object, object {obj}")
         obj_name = _get_obj_name(obj)
-        original_result: List[BaseORMModel] = self._get_original_data_from_cache(
-            obj_name
-        )
+        original_result: List[BaseModel] = self._get_original_data_from_cache(obj_name)
 
-        if isinstance(obj, BaseORMModel):
-            original_result.append(obj)
+        if isinstance(obj, BaseModel):
+            if obj not in original_result:
+                original_result.append(obj) 
         elif isinstance(obj, QuerySet):
-            original_result += obj.all()
+            for item in obj.all(): 
+                if item not in original_result:
+                    original_result.append(item) 
         else:
-            original_result += obj
+            for item in obj:
+                if item not in original_result:
+                    original_result.append(item) 
 
-        self[obj_name] = original_result
+        self[obj_name] = original_result 
         return QuerySet(self[obj_name])
 
-    def delete(self, obj: Union[List[BaseORMModel], QuerySet, BaseORMModel]):
-        """delete obj by obj.__unique_id__"""
-        logger.info(f"[orm] delete object, object {obj}")
+    def delete(self, obj: Union[List[BaseModel], QuerySet, BaseModel]):
+        """Deletion via object UID (batch supported)"""
+        logger.info(f"[orm]  delete object, object {obj}")
         obj_name = _get_obj_name(obj)
-        original_result: List[BaseORMModel] = self._get_original_data_from_cache(
-            obj_name
-        )
-        copy_result: List[BaseORMModel] = original_result.copy()
+        original_data: List[BaseModel] = self._get_original_data_from_cache(obj_name)
+        updated_data = original_data.copy() 
 
-        if isinstance(obj, BaseORMModel):
-            obj = [obj]
+        to_delete = []
+        if isinstance(obj, BaseModel):
+            to_delete = [obj]
         elif isinstance(obj, QuerySet):
-            obj = obj.all()
-        if len(obj) == 0:
-            return
+            to_delete = obj.all() 
+        elif isinstance(obj, list):
+            to_delete = obj
 
-        for cache_obj_item in original_result:
-            for input_obj_item in obj:
-                if cache_obj_item.__unique_id__ == input_obj_item.__unique_id__:
-                    copy_result.remove(cache_obj_item)
-        return self.__setitem__(obj_name, copy_result)
+        delete_uids = {item.uid  for item in to_delete}
+        updated_data = [item for item in updated_data if item.uid  not in delete_uids]
 
-    def set(self, obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]):
-        logger.info(f"[orm] set object, object {obj}")
+        self[obj_name] = updated_data
+
+    def delete_by(self, cls: type(BaseModel), **conditions):
+        """Delete objects directly from conditional parameters"""
+        queryset = self.query(cls).filter(**conditions) 
+        if queryset.all(): 
+            self.delete(queryset.all()) 
+
+    def set(self, obj: Union[BaseModel, QuerySet, List[BaseModel]]):
+        logger.info(f"[orm]     set object, object {obj}")
         obj_name = _get_obj_name(obj)
-        if isinstance(obj, BaseORMModel):
-            obj = [obj]
+ 
+        if isinstance(obj, BaseModel):
+            obj_list = [obj]
         elif isinstance(obj, QuerySet):
-            obj = obj.all()
-        if len(obj) == 0:
-            return
-        return self.__setitem__(obj_name, obj)
+            obj_list = obj.all() 
+        else:
+            obj_list = obj 
+            
+        seen_uids = set()
+        unique_objs = []
+        for o in obj_list:
+            if o.uid  not in seen_uids:
+                seen_uids.add(o.uid) 
+                unique_objs.append(o) 
+ 
+        self[obj_name] = unique_objs
 
-    def update_obj(self, obj: BaseORMModel):
-        logger.info(f"[orm] update object, object {obj}")
-        original_result: List[BaseORMModel] = self._get_original_data_from_cache(
-            obj.__name__
-        )
-        copy_result: List[BaseORMModel] = original_result.copy()
-
-        for i in range(len(copy_result)):
-            if copy_result[i].__unique_id__ == obj.__unique_id__:
-                copy_result[i] = obj
-                return self.__setitem__(obj.__name__, copy_result)
-
-        raise ValueError(f"can not found object: {obj}")
-
-    def __getitem__(self, item) -> List[BaseORMModel]:
+    def __getitem__(self, item) -> List[BaseModel]:
         """implemented by CushyDict"""
 
-    def __setitem__(self, key, value) -> List[BaseORMModel]:
+    def __setitem__(self, key, value) -> List[BaseModel]:
         """implemented by CushyDict"""
 
 
@@ -244,3 +248,17 @@ class CushyOrmCache(CushyDict, ORMMixin):
         compress: Union[str, Tuple[Callable, Callable], None] = None,
     ):
         super().__init__(path, compress, "pickle")
+        
+    
+    def update(self, obj: BaseModel):
+        """Update an existing object in the cache based on its uid."""
+        logger.info(f"[orm] update object, object {obj}")
+        obj_name = _get_obj_name(obj)
+        original_data: List[BaseModel] = self._get_original_data_from_cache(obj_name)
+
+        for i, item in enumerate(original_data):
+            if item.uid == obj.uid:
+                original_data[i] = obj
+                break
+
+        self[obj_name] = original_data  
