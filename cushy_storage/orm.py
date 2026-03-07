@@ -20,21 +20,19 @@
 import hashlib
 import json
 import uuid
-from abc import ABC
 from typing import Callable, List, Optional, Tuple, Union
 
+from pydantic import BaseModel
 from cushy_storage import CushyDict
 from cushy_storage.utils import get_default_cache_path
 from cushy_storage.utils.logger import logger
 
 
-class BaseORMModel(ABC):
-    def __init__(self):
-        self.__name__ = type(self).__name__
-        self.__unique_id__: str = str(uuid.uuid4())
+class BaseORMModel(BaseModel):
+    __unique_id__: str = str(uuid.uuid4())
 
     def __get_element_hash__(self) -> str:
-        dic = self.__dict__.copy()
+        dic = self.dict()
         del dic["__unique_id__"]
 
         json_data = json.dumps(dic, sort_keys=True).encode("utf-8")
@@ -141,7 +139,7 @@ def _get_obj_name(obj: Union[BaseORMModel, QuerySet, List[BaseORMModel]]) -> str
         return obj[0].__name__
 
 
-class ORMMixin(ABC):
+class ORMMixin:
     def _get_original_data_from_cache(
         self, class_name_or_obj: Union[str, type(BaseORMModel)]
     ) -> List[BaseORMModel]:
