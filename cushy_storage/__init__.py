@@ -18,7 +18,15 @@
 # Contact Email: zeeland@foxmail.com
 
 
-from cushy_storage._core import BaseDict, CushyDict, disk_cache
-from cushy_storage.orm import BaseORMModel, CushyOrmCache
+from ._core import BaseDict, CushyDict, disk_cache
 
-__all__ = ["disk_cache", "CushyDict", "BaseDict", "BaseORMModel", "CushyOrmCache"]
+from .orm import BaseORMModel, CushyOrmCache, QuerySet
+
+__all__ = [
+    "disk_cache",
+    "CushyDict",
+    "BaseDict",
+    "BaseORMModel",
+    "CushyOrmCache",
+    "QuerySet"
+]

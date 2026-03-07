@@ -1,0 +1,149 @@
+import unittest
+import os
+import shutil
+from typing import List
+
+from cushy_storage import BaseORMModel, CushyOrmCache
+from cushy_storage.orm import QuerySet
+from tests.utils import delete_cache
+
+cache_file = {
+    "test_orm_add_and_query": "./cache/test-cushy-orm-cache",
+    "test_orm_delete": "./cache/test-cushy-orm-cache-orm-delete",
+    "test_orm_update": "./cache/test-cushy-orm-cache-orm-update",
+    "test_orm_set": "./cache/test-cushy-orm-cache-orm-set",
+    "test_orm_remove_duplicates": "./cache/test-cushy-orm-cache-orm-remove-duplicates",
+}
+
+def delete_cache():
+    cache_dir = "./cache"
+    if os.path.exists(cache_dir):
+        shutil.rmtree(cache_dir, ignore_errors=True)
+
+
+class User(BaseORMModel):
+    def __init__(self, name, age):
+        super().__init__()
+        self.name = name
+        self.age = age
+
+
+class TestORM(unittest.TestCase):
+    @classmethod
+    def tearDownClass(cls):
+        delete_cache()
+
+    def test_queryset_base(self):
+        user_list: List[User] = [User("jack", 18), User("jasmine", 18)]
+        queryset = QuerySet(user_list)
+
+        # assert all() and first()
+        self.assertEqual(len(queryset.all()), 2)
+        self.assertEqual(queryset.first().name, "jack")
+        self.assertEqual(queryset.first().age, 18)
+
+        # assert filter()
+        queried_user = queryset.filter(name="jack").first()
+        self.assertEqual(queried_user.name, "jack")
+        self.assertEqual(queried_user.age, 18)
+
+        # fileter with multiple params
+        queried_users = queryset.filter(name="jack", age=18).all()
+        self.assertEqual(len(queried_users), 1)
+        self.assertEqual(queried_users[0].name, "jack")
+        self.assertEqual(queried_users[0].age, 18)
+
+        # filter multiple result
+        queried_users = queryset.filter(age=18).all()
+        self.assertEqual(len(queried_users), 2)
+        self.assertEqual(queried_users[0].name, "jack")
+        self.assertEqual(queried_users[1].name, "jasmine")
+
+        # filter by multiple parameters
+        queried_user = queryset.filter(name="jack", age=18).first()
+        self.assertEqual(queried_user.name, "jack")
+        self.assertEqual(queried_user.age, 18)
+
+    def test_orm_add_and_query(self):
+        orm_cache = CushyOrmCache(cache_file["test_orm_add_and_query"])
+        user = User("jack", 18)
+        # assert add()
+        queryset = orm_cache.add(user)
+        self.assertEqual(len(queryset.all()), 1)
+
+        # assert query()
+        queryset_by_class = orm_cache.query(User)
+        self.assertEqual(queryset_by_class.first().name, "jack")
+        self.assertEqual(queryset_by_class.first().age, 18)
+
+        queryset_by_str = orm_cache.query("User")
+        self.assertEqual(queryset_by_str.first().name, "jack")
+        self.assertEqual(queryset_by_str.first().age, 18)
+
+        # add multiple users
+        user_list: List[User] = [
+            User("zeeland", 22),
+            User("hizeros", 20),
+            User("honey", 18),
+        ]
+        queryset = orm_cache.add(user_list)
+        self.assertEqual(len(queryset.all()), 4)
+        self.assertIsNotNone(queryset.filter(name="zeeland").first())
+
+    def test_orm_delete(self):
+        orm_cache = CushyOrmCache(cache_file["test_orm_delete"])
+
+        # add single user
+        user_a = User("user a", 20)
+        orm_cache.add(user_a)
+        user_b = User("user b", 30)
+        orm_cache.add(user_b)
+        user_c = User("user c", 40)
+        orm_cache.add(user_c)
+
+        self.assertEqual(len(orm_cache.query(User).all()), 3)
+        orm_cache.query(User).print_all()
+
+        # delete single user
+        orm_cache.delete(user_b)
+        orm_cache.query(User).print_all()
+        queryset = orm_cache.query(User)
+        self.assertEqual(len(queryset.all()), 2)
+        self.assertEqual(queryset.first().name, "user a")
+        self.assertEqual(queryset.first().age, 20)
+
+    def test_orm_update(self):
+        orm_cache = CushyOrmCache(cache_file["test_orm_update"])
+        user = User("old username", 18)
+        orm_cache.add(user)
+
+        # assert update
+        user.name = "new username"
+        orm_cache.update_obj(user)
+        queried_user = orm_cache.query(User).filter(name="new username").first()
+        self.assertIsNotNone(queried_user)
+        self.assertEqual(queried_user.name, "new username")
+
+    def test_orm_set(self):
+        orm_cache = CushyOrmCache(cache_file["test_orm_set"])
+        users = [User("no exist user", 18)] * 10
+        orm_cache.add(users)
+        self.assertEqual(len(orm_cache.query(User).all()), 1)
+
+        orm_cache.set(User("existing user", 10))
+        queryset = orm_cache.query(User).all()
+        self.assertEqual(len(queryset), 1)
+        self.assertEqual(queryset[0].name, "existing user")
+
+    def test_orm_remove_duplicates(self):
+        orm_cache = CushyOrmCache(cache_file["test_orm_remove_duplicates"])
+        users = []
+        for i in range(10):
+            users.append(User(name="user1", age=1))
+        users.append(User(name="last user", age=18))
+        orm_cache.add(users)
+        self.assertEqual(len(orm_cache.query(User).all()), 11)
+
+        orm_cache.remove_duplicates(User)
+        queryset = orm_cache.query(User).all()
+        self.assertEqual(len(queryset), 2)
